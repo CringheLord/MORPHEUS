@@ -21,8 +21,10 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard} from '@/routes';
+import { dashboard } from '@/routes';
+import  heuristics  from '@/routes/heuristics';
 import studyCases from '@/routes/study-cases';
+
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -38,7 +40,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Heuristics',
-        href: studyCases.index(),
+        href: heuristics.index(),
         icon: LucideScale3D,
     },
 ];

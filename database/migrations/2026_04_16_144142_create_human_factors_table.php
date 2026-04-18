@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string("name")->unique();
             $table->string("category");
-            $table->string("icon");
+            $table->string("icon")->default("Hexagon");
             $table->timestamps();
         });
     }

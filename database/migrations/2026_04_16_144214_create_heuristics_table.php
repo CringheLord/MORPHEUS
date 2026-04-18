@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string("h_id")->unique();
             $table->string("title");
+            $table->string("icon")->default("Hexagon");
+            $table->integer('incidence_rate')->default('0');
             $table->foreignId("human_factor_id")->constrained();
             $table->longText("trigger");
             $table->longText("examples");

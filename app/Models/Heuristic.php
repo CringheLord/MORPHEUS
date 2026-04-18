@@ -9,6 +9,7 @@ class Heuristic extends Model
     protected $fillable = [
         'h_id',
         'title',
+        'icon',
         'human_factor_id',
         'trigger',
         'examples',

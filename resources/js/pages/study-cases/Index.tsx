@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { heuristics } from '@/routes';
 
 type StudyCase = {
     id: number;
@@ -14,3 +15,11 @@ export default function Index({ studyCases }: { studyCases: StudyCase[] }) {
         </>
     );
 }
+Index.layout = {
+    breadcrumbs: [
+        {
+            title: 'Study Cases',
+            href: '/StudyCases',
+        },
+    ],
+};
