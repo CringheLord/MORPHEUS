@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\StudyCase;
 
@@ -11,7 +12,13 @@ class StudyCaseController extends Controller
 {
     public function index()
     {
-        return Inertia::render('StudyCases/Index', [
+        $studyCases = StudyCase::with('owner')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->paginate(10);
+
+        return Inertia::render('study-cases/Index', [
+            'StudyCases' => $studyCases,
         ]);
     }
 

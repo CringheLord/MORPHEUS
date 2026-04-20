@@ -11,9 +11,11 @@ Route::inertia('/', 'welcome', [
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
-    Route::inertia('study-cases', 'study-cases/Index')->name('study-cases.index');
+
     //Heuristics
     Route::get('heuristics', [HeuristicController::class, 'index'])->name('heuristics.index');
+    //Study Cases
+    Route::get('study-cases', [StudyCaseController::class, 'index'])->name('study-cases.index');
 
 
 });

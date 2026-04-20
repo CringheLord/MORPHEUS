@@ -32,11 +32,15 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
-    protected function avatar(): Attribute
+    public function avatar(): Attribute
     {
         return Attribute::make(
             get: fn (?string $value) => $value ? asset('storage/' . ltrim($value, '/')) : null,
             set: fn (?string $value) => $value ? ltrim($value, '/') : null,
         );
+    }
+
+    public function StudyCases() {
+        return $this->belongsToMany(StudyCase::class);
     }
 }

@@ -23,3 +23,17 @@ export type HumanFactor = {
     title: string;
     description: string;
 };
+
+export type StudyCase = {
+    id: number;
+    title: string;
+    description: string | null;
+
+    risk_score: number;
+    status: 'draft' | 'in_progress' | 'completed' | 'archived';
+    c_percentage: number;
+
+    completed_at: string | null;
+    created_at: string;
+    updated_at: string;
+};

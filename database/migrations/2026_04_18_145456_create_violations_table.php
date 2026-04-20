@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('human_factors', function (Blueprint $table) {
+        Schema::create('violations', function (Blueprint $table) {
             $table->id();
-            $table->string("name")->unique();
-            $table->string("category");
-            $table->string("icon")->default("Hexagon");
-            $table->integer("number_of_violations")->default(0);
             $table->timestamps();
         });
     }
@@ -26,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('humanFactor');
+        Schema::dropIfExists('violations');
     }
 };

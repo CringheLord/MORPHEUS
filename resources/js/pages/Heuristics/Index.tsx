@@ -3,6 +3,7 @@ import { ListFilter, CirclePlus } from 'lucide-react';
 import React from 'react';
 import HeuristicShow from '@/components/heuristics/heuristicShow';
 import HeuristicsStats from '@/components/heuristics/heuristicsStats';
+import { Input } from '@/components/ui/input';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import HumanFactorTable from '@/pages/HumanFactors/humanFactorTable';
 
@@ -40,6 +41,9 @@ export default function Index ({ heuristics, heuristics_all, human_factors }: Pr
                                         Structured Architectural Components
                                         Audit Trail
                                     </p>
+                                </div>
+                                <div>
+                                    <Input />
                                 </div>
                             </div>
                             <div className="max-h-57 overflow-y-auto">

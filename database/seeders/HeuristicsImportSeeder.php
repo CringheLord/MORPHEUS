@@ -128,7 +128,7 @@ class HeuristicsImportSeeder extends Seeder
                 // Human Factors
                 $humanFactor = HumanFactor::updateOrCreate(
                     [
-                        'name' => $item['human_factor   '],
+                        'name' => $item['human_factor'],
                     ],
                     [
                         'category' =>$item['category'],

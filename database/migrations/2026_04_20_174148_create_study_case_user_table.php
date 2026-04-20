@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('human_factors', function (Blueprint $table) {
+        Schema::create('study_case_user', function (Blueprint $table) {
             $table->id();
-            $table->string("name")->unique();
-            $table->string("category");
-            $table->string("icon")->default("Hexagon");
-            $table->integer("number_of_violations")->default(0);
+            $table->foreignId('study_case_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['study_case_id', 'user_id']);
         });
     }
 
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('humanFactor');
+        Schema::dropIfExists('study_case_user');
     }
 };

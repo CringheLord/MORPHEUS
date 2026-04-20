@@ -28,6 +28,7 @@ return new class extends Migration
             $table->longText("security_risk");
             $table->longText("remediation");
             $table->longText("org_question");
+            $table->integer("number_of_violations")->default(0);
             $table->timestamps();
         });
     }
