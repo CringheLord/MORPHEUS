@@ -1,13 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { route } from 'ziggy-js';
 import { Search, SquarePlus, FolderPlus, ChevronsLeft } from 'lucide-react';
+import React from 'react';
+import { route } from 'ziggy-js';
 import ScCard from '@/components/studyCase/sc-card';
 import { Button } from '@/components/ui/button';
 
 import studyCases from '@/routes/study-cases';
 
 import type { StudyCase, Paginated} from '@/types';
-import React from 'react';
 
 
 type Props = {

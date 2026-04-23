@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     BrainCircuit,
     Brain,
@@ -19,6 +18,7 @@ import {
     HelpCircle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import React from 'react';
 
 const iconMap: Record<string, LucideIcon> = {
     'shield-alert': ShieldAlert,

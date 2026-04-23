@@ -1,4 +1,3 @@
-import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     MoreHorizontal,
@@ -7,6 +6,7 @@ import {
     Share,
     FolderOutput, ChevronsLeft,
 } from 'lucide-react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 
 type Props = {
@@ -116,7 +116,9 @@ export default function ActionsMenu({
 
     React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (!rootRef.current) return;
+            if (!rootRef.current) {
+return;
+}
 
             if (!rootRef.current.contains(event.target as Node)) {
                 setOpen(false);
@@ -126,6 +128,7 @@ export default function ActionsMenu({
         };
 
         document.addEventListener('click', handleClickOutside);
+
         return () => {
             document.removeEventListener('click', handleClickOutside);
         };
@@ -134,7 +137,9 @@ export default function ActionsMenu({
     const toggleResetMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
 
-        if (!resetButtonRef.current) return;
+        if (!resetButtonRef.current) {
+return;
+}
 
         const rect = resetButtonRef.current.getBoundingClientRect();
 
@@ -154,6 +159,7 @@ export default function ActionsMenu({
                 className="text-md transition-colors duration-300"
                 onClick={() => {
                     setOpen((prev) => !prev);
+
                     if (open) {
                         setResetOpen(false);
                     }
