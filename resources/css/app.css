@@ -21,8 +21,16 @@
     --color-foreground: var(--foreground);
 
     --color-card: var(--card);
+    --color-card-high: var(--card-high);
+    --color-card-highest: var(--card-highest);
     --color-card-foreground: var(--card-foreground);
     --color-card-foreground-secondary: var(--card-foreground-secondary);
+
+    --color-surface-container-low: var(--surface-container-low);
+    --color-surface-container-secondary: var(--surface-container-secondary);
+    --color-surface-container: var(--surface-container);
+    --color-surface-container-high: var(--surface-container-high);
+    --color-surface-container-highest: var(--surface-container-highest);
 
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
@@ -72,8 +80,15 @@
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
+    --card-high: oklch(0.97 0 0);
+    --card-highest: #d1d1d1;
     --card-foreground: oklch(0.145 0 0);
     --card-foreground-secondary: oklch(0.205 0 0);
+    --surface-container-low: #ffffff;
+    --surface-container-secondary: #cecef1;
+    --surface-container: #f3f4f6;
+    --surface-container-high: #e5e7eb;
+    --surface-container-highest: #d1d5db;
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
     --primary: #0594d6;
@@ -126,8 +141,15 @@
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.145 0 0);
+    --card-high: oklch(0.205 0 0);
+    --card-highest: #202020;
     --card-foreground: oklch(0.985 0 0);
     --card-foreground-secondary: oklch(0.708 0 0);
+    --surface-container-low: #18181b;
+    --surface-container-secondary: #901414;
+    --surface-container: #202024;
+    --surface-container-high: #2b2b31;
+    --surface-container-highest: #34343b;
     --popover: oklch(0.145 0 0);
     --popover-foreground: oklch(0.985 0 0);
     --primary: oklch(0.985 0 0);

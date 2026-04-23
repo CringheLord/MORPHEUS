@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             HeuristicsImportSeeder::class,
-            StudyCaseSeeder::class,
+            AppSeeder::class,
         ]);
     }
 }

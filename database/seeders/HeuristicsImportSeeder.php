@@ -162,7 +162,7 @@ class HeuristicsImportSeeder extends Seeder
                 // UI Tags
                 $tagIds = [];
 
-                foreach (($item['uiTag'] ?? []) as $tagName) {
+                foreach (($item['ui_tags'] ?? []) as $tagName) {
                     $cleanName = trim($tagName);
 
                     $tag = UiTag::updateOrCreate(

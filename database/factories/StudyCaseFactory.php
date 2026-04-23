@@ -25,10 +25,10 @@ class StudyCaseFactory extends Factory
             : null;
 
         return [
-            'user_id' => User::factory(),
+            'owner_id' => User::factory(),
 
             'title' => $title,
-            'slug' => Str::slug($title) . '-' . Str::lower(Str::random(6)),
+            //'slug' => Str::slug($title) . '-' . Str::lower(Str::random(6)),
             'description' => fake()->paragraph(),
 
             'system_name' => fake()->randomElement([
@@ -99,6 +99,7 @@ class StudyCaseFactory extends Factory
                     'Action Perception',
                 ], fake()->numberBetween(1, 3)),
             ],
+            'risk_level' => fake()->randomElement(['low', 'medium', 'high']),
         ];
     }
 }

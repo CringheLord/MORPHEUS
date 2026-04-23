@@ -22,7 +22,7 @@ import type { LucideIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
-import type { Heuristic } from '@/types';
+import type { Heuristic, uiTag } from '@/types';
 
 type Props = {
     heuristic: Heuristic;
@@ -49,6 +49,9 @@ const iconMap: Record<string, LucideIcon> = {
 
 const HeuristicShow = ({ heuristic }: Props) => {
     const Icon = iconMap[heuristic.icon] ?? HelpCircle;
+    const uiTags = heuristic.ui_tags ?? [];
+    console.log(heuristic.ui_tags);
+
 
     return (
         <tr className="bg-card transition-colors hover:bg-secondary/20 dark:hover:bg-card/1">
@@ -56,7 +59,7 @@ const HeuristicShow = ({ heuristic }: Props) => {
                 {heuristic.h_id}
             </td>
 
-            <td className="px-6 py-4">
+            <td className="pl-6 py-4">
                 <div className="flex items-center gap-6">
                     <div className="rounded-lg border border-secondary/20 bg-tertiary/5 p-2">
                         <Icon className="h-5 w-5 text-secondary" />
@@ -66,6 +69,13 @@ const HeuristicShow = ({ heuristic }: Props) => {
                         {heuristic.title}
                     </span>
                 </div>
+            </td>
+            <td className=" pr-6 py-4">
+                {uiTags?.map((tag) => (
+                    <span className="text-xs mx-2 bg-card-high p-2 rounded-xl" key={tag.id}>
+                        {tag.name}
+                    </span>
+                ))}
             </td>
 
             <td className="px-6 py-4 text-sm text-muted-foreground">

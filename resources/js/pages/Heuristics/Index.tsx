@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ListFilter, CirclePlus } from 'lucide-react';
 import React from 'react';
 import HeuristicShow from '@/components/heuristics/heuristicShow';
@@ -8,18 +8,40 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import HumanFactorTable from '@/pages/HumanFactors/humanFactorTable';
 
 import { heuristics } from '@/routes';
-import type { Heuristic, Paginated, HumanFactor } from '@/types';
+import type { Heuristic, Paginated, HumanFactor, uiTag } from '@/types';
 
 
 
+
+type Filters = {
+    human_factor_id: string;
+    tag_slug: string;
+};
 
 type Props = {
     heuristics: Paginated<Heuristic>;
     heuristics_all: Heuristic[];
-    human_factors: Paginated<HumanFactor>;
+    human_factors: HumanFactor[];
+    tags: uiTag[];
+    filters: Filters;
 };
 
-export default function Index ({ heuristics, heuristics_all, human_factors }: Props){
+export default function Index ({ heuristics, heuristics_all, human_factors, filters, tags }: Props){
+    const updateFilter =  (key: keyof Filters, value: string) => {
+        router.get(
+            '/heuristics',
+            {
+                ...filters,
+                [key]: value,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            }
+        )
+    }
+
     return (
         <>
             <Head title="Heuristics" />
@@ -31,8 +53,8 @@ export default function Index ({ heuristics, heuristics_all, human_factors }: Pr
                         <HeuristicsStats heuristics={heuristics_all} />
                     </div>
                     <div>
-                        <div className="border-primary glass-card glass-primary overflow-hidden rounded-lg border bg-card shadow-sm">
-                            <div className="border-outline-variant bg-surface-container-low flex items-center justify-between border-b p-6">
+                        <div className="glass-card glass-primary overflow-hidden rounded-lg border border-primary bg-card shadow-sm">
+                            <div className="border-outline-variant flex items-center justify-between border-b bg-surface-container-low p-6">
                                 <div>
                                     <h3 className="font-headline text-on-background text-lg font-bold tracking-widest uppercase">
                                         Human Factors Indexing
@@ -88,32 +110,64 @@ export default function Index ({ heuristics, heuristics_all, human_factors }: Pr
                             Heuristic Inventory
                         </h2>
 
-                        <div className="flex gap-4">
-                            <div className="relative">
-                                <ListFilter className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
-                                <select className="border-outline-variant min-w-[140px] appearance-none grid-cols-2 rounded-lg border bg-muted py-2 pr-8 pl-10 text-sm text-foreground focus:ring-1 focus:ring-ring">
-                                    <option>All Factors</option>
-                                    <option>Cyber Risk Belief</option>
-                                    <option>Social Engineering</option>
-                                    <option>Lack of Awareness</option>
-                                    <option>Cognitive Fatigue</option>
-                                    <option>Vigilance</option>
-                                    <option>Cognitive Reflectiveness</option>
-                                    <option>Overconfidence</option>
-                                    <option>Uncertainly</option>
-                                    <option>Complacency</option>
-                                    <option>Compulsive Behavior</option>
-                                    <option>Frustration</option>
-                                    <option>Stress</option>
-                                    <option>Shame</option>
-                                    <option>Fear</option>
-                                </select>
-                            </div>
+                        {/* scrollable filter bar */}
+                        <div className="overflow-x-auto">
+                            <div className="flex min-w-max flex-nowrap gap-4 pb-1">
+                                <div className="relative shrink-0">
+                                    <ListFilter className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
 
-                            <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:opacity-90">
-                                <CirclePlus className="size-6 text-primary-foreground" />
-                                New Analysis
-                            </button>
+                                    <select
+                                        value={filters.human_factor_id}
+                                        onChange={(e) =>
+                                            updateFilter(
+                                                'human_factor_id',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="border-outline-variant min-w-[180px] appearance-none rounded-lg border bg-muted py-2 pr-8 pl-10 text-sm text-foreground focus:ring-1 focus:ring-ring"
+                                    >
+                                        <option value="all">All Factors</option>
+                                        {human_factors.map((hf) => (
+                                            <option
+                                                key={hf.id}
+                                                value={String(hf.id)}
+                                            >
+                                                {hf.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="relative shrink-0">
+                                    <ListFilter className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
+
+                                    <select
+                                        value={filters.tag_slug}
+                                        onChange={(e) =>
+                                            updateFilter(
+                                                'tag_slug',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="border-outline-variant min-w-[220px] appearance-none rounded-lg border bg-muted py-2 pr-8 pl-10 text-sm text-foreground focus:ring-1 focus:ring-ring"
+                                    >
+                                        <option value="all">All Tags</option>
+                                        {tags.map((tag) => (
+                                            <option
+                                                key={tag.id}
+                                                value={tag.slug}
+                                            >
+                                                {tag.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <button className="shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-colors hover:opacity-90">
+                                    <CirclePlus className="mr-2 inline size-5" />
+                                    New Analysis
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -122,7 +176,8 @@ export default function Index ({ heuristics, heuristics_all, human_factors }: Pr
                             <thead className="bg-muted text-xs font-bold tracking-wider text-muted-foreground uppercase">
                                 <tr>
                                     <th className="px-6 py-4">ID</th>
-                                    <th className="px-6 py-4">Title</th>
+                                    <th className="py-4 pl-6">Title</th>
+                                    <th className="py-4">Tags</th>
                                     <th className="px-6 py-4">Human Factor</th>
                                     <th className="px-6 py-4">
                                         Incidence Rate

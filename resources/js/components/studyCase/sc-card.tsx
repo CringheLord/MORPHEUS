@@ -1,11 +1,22 @@
+import { Link } from '@inertiajs/react';
 
 import { ShieldCheck } from 'lucide-react';
 import React from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
+import { useInitials } from '@/hooks/use-initials';
+import studyCases from '@/routes/study-cases';
 
 
+
+
+import type { User } from '@/types';
 import type { StudyCase } from '@/types';
+
+
+
+
 
 
 
@@ -22,7 +33,7 @@ const StatusDiv = ({ status }: { status: Status }) => {
             colorClass = 'bg-slate-100 text-slate-700 border-slate-200';
             break;
         case 'in_progress':
-            colorClass = 'bg-blue-100 text-blue-700 border-blue-200';
+            colorClass = 'bg-blue-300 text-blue-800 border-blue-300';
             break;
         case 'completed':
             colorClass = 'bg-green-100 text-green-700 border-green-200';
@@ -53,19 +64,21 @@ const DateJob = ({
     if (completed_at != null) {
         return (
             <span className="text-xs font-medium text-card-foreground-secondary">
-                {completed_at}
+                {completed_at ? new Date(completed_at).toLocaleString() : 'N/A'}
             </span>
         );
     } else if (updated_at != null) {
         return (
             <span className="text-xs font-medium text-card-foreground-secondary">
-                Updated {updated_at}
+                Updated{' '}
+                {updated_at ? new Date(updated_at).toLocaleString() : 'N/A'}
             </span>
         );
     } else {
         return (
             <span className="text-xs font-medium text-card-foreground-secondary">
-                Created {created_at}
+                Created{' '}
+                {created_at ? new Date(created_at).toLocaleString() : 'N/A'}
             </span>
         );
     }
@@ -74,8 +87,8 @@ const DateJob = ({
 const StatRow = ({ status, c_percentage, risk_score }: { status: Status, c_percentage: number, risk_score: number }) => {
   if (status === 'completed') {
       return (
-          <div className="bg-surface-container-high flex items-center gap-3 rounded-lg p-3">
-              <ShieldCheck className="h-5 w-5 text-primary" />
+          <div className="bg-card-highest flex items-center gap-3 rounded-lg p-3">
+              <ShieldCheck className="h-5 w-5 text-primary dark:text-destructive" />
               <div className="text-xs">
                   <p className="text-on-surface font-bold">
                       Final Risk Score: { risk_score }
@@ -87,41 +100,37 @@ const StatRow = ({ status, c_percentage, risk_score }: { status: Status, c_perce
           </div>
       );
   }else if (status === 'in_progress') {
-      return (<div className="space-y-2">
+      return (<div className="space-y-5 p-2 rounded-xl border bg-card-highest">
               <div className="text-on-surface-variant flex justify-between text-xs font-bold">
                   <span>Audit Completion</span>
                   <span>{c_percentage}%</span>
               </div>
               <div className="bg-surface-container h-1.5 w-full overflow-hidden rounded-full">
                   <div
-                      className="h-full rounded-full bg-primary" style={{ width: `${c_percentage}%` }}
+                      className="h-full rounded-full bg-primary dark:bg-destructive" style={{ width: `${c_percentage}%` }}
                   ></div>
               </div>
           </div>
       );
   }else {
       return (
-          <div></div>
+          <div className="h-14"></div>
       );
   }
 
 };
 
-const ShowUsersAvatar = () => {
+const ShowUsersAvatar = ( { user }: { user: User } ) => {
+    const getInitials = useInitials();
+
     return (
         <div className="flex -space-x-2">
-            <img
-                alt="Researcher"
-                className="h-6 w-6 rounded-full border-2 border-white"
-                data-alt="portrait of a researcher focused and professional"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdqnj52SXImm2C1j8BS-JhgCSOHvby_DZaiLsgrWO6TmYjw22Q3TrdRnqYKAtfCHIGbWR8N7zpZ62aNR0hhYTzX5Mq9HZ-EP_kgyqFbuwDK6r8AYi8NZSulktGiH_ZS5mAildQNupC-KkMxNuXQ75y8W1-1qRLyiInUbkV2q4bcuHy5UFMCMNwzd1uzjb8SKCg6hzFVhzbVhyEQk7XXVqahmgOUFj22UncObwtoPM7fD46fqUJB-i9xMJLQbrpH9Ug_si8s_7fUG4"
-            />
-            <img
-                alt="Researcher"
-                className="h-6 w-6 rounded-full border-2 border-white"
-                data-alt="portrait of a ux specialist with neutral studio lighting"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLyf9WnkO3A4CP-Agd627YKu7yg5x4P81b1FtPKg1CL9X7XEw4PjnCO3rJ24dbBaBtUwdysnDtoB4JalaxAQCAkWxUi4Hj9SZwnov2RxFF_3ADZqk1U3UJ9s2Z3GEWTZ0hUxFCXw-t6C8SRW2BqNP3wfxkemMFf5EFJgI5cl2bHkRh0GkNQOyfKQ3aV7QbrUlblT7EsCzgesdzZ8NtAa5jL7GJSV2xHgHy5ELg36BlN0PMVhGPO-ppOayDyiVb6ZmqhktqCynrBoU"
-            />
+            <Avatar className="h-10 w-10 overflow-hidden rounded-full">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                    {getInitials(user.name)}
+                </AvatarFallback>
+            </Avatar>
         </div>
     );
 }
@@ -129,7 +138,7 @@ const ShowUsersAvatar = () => {
 const BtnFinalRow = ({ status }: { status: Status }) => {
     switch (status) {
         case 'completed':
-            return <Button className="w-full">View Report</Button>;
+            return (<Button className="w-full">View Report</Button>);
 
         case 'in_progress':
             return (
@@ -165,8 +174,8 @@ const ScCard = ({ StudyCase }: Props) => {
     const safePercentage = StudyCase.c_percentage ?? 0;
 
     return (
-        <div>
-            <div className="border-surface-variant group flex flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-300 hover:shadow-xl">
+        <div className="justify-self-start">
+            <div className="group flex w-fit flex-col overflow-hidden rounded-2xl border border-secondary bg-card transition-all duration-300 hover:shadow-xl dark:border-muted">
                 <div className="grow p-6">
                     <div className="mb-4 flex items-start justify-between">
                         <StatusDiv status={safeStatus} />
@@ -186,10 +195,10 @@ const ScCard = ({ StudyCase }: Props) => {
                     </p>
 
                     <div className="mb-6 flex flex-wrap gap-2">
-                        <span className="bg-surface-container text-on-surface-variant rounded px-2 py-1 text-[10px] font-bold tracking-widest uppercase">
+                        <span className="text-on-surface-variant rounded bg-surface-container px-2 py-1 text-[10px] font-bold tracking-widest uppercase">
                             Cognitive Load
                         </span>
-                        <span className="bg-surface-container text-on-surface-variant rounded px-2 py-1 text-[10px] font-bold tracking-widest uppercase">
+                        <span className="text-on-surface-variant rounded bg-surface-container px-2 py-1 text-[10px] font-bold tracking-widest uppercase">
                             Trust
                         </span>
                     </div>
@@ -201,10 +210,19 @@ const ScCard = ({ StudyCase }: Props) => {
                     />
                 </div>
 
-                <div className="bg-surface-container-lowest border-surface-variant flex items-center justify-between border-t px-6 py-4">
-                    <ShowUsersAvatar />
+                <div className="flex items-center justify-between border-t border-t-secondary bg-card-high px-6 py-4 dark:border-t-destructive">
+                    <div className="flex -space-x-2">
+                        <div className="rounded-full border-2 border-secondary">
+                            <ShowUsersAvatar user={StudyCase.owner} />
+                        </div>
+                        {(StudyCase.users ?? []).map((user: User) => (
+                            <ShowUsersAvatar user={user} key={user.id} />
+                        ))}
+                    </div>
                     <div className="flex gap-2">
-                        <BtnFinalRow status={safeStatus} />
+                        <Link href={studyCases.show(StudyCase)}>
+                            <BtnFinalRow status={safeStatus} />
+                        </Link>
                     </div>
                 </div>
             </div>

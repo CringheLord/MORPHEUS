@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('study_cases', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('last_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('assigned_user_id')->nullable()->constrained('users')->nullOnDelete();
 
             $table->string('title');
-            $table->string('slug')->unique();
+            //$table->string('slug')->nullable()->unique()->change();
             $table->text('description')->nullable();
 
             $table->string('system_name');               // e.g. "HR Portal"
@@ -25,7 +27,8 @@ return new class extends Migration
             $table->string('target_url')->nullable();
             $table->text('analysis_goal')->nullable();
 
-            $table->string('status')->default('draft'); // draft, in_progress, completed, archived
+            $table->string('status')->default('draft'); // draft, in_progress, completed
+            $table->string('risk_level')->default('low');
             $table->decimal('risk_score')->default(0);
             $table->integer('c_percentage')->default(0);
 
@@ -39,6 +42,7 @@ return new class extends Migration
             $table->string('last_opened_section')->nullable(); // route/section/layer shortcut
 
             $table->json('meta')->nullable(); // flexible extra data while model is evolving
+
 
             $table->timestamps();
             $table->softDeletes();

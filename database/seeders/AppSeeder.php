@@ -5,12 +5,16 @@ namespace Database\Seeders;
 use App\Models\StudyCase;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
-class StudyCaseSeeder extends Seeder
+class AppSeeder extends Seeder
 {
     public function run(): void
     {
-        $owner = User::query()->first() ?? User::factory()->create();
+        $owner = User::firstOrCreate(
+            ['email' => 'pi@example.com', ],
+            ['name' => 'Super Admin', 'password' => Hash::make('password')],
+        );
 
         // Main study cases owned by first user
         $studyCases = StudyCase::factory()

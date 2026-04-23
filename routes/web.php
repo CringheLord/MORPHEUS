@@ -16,7 +16,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('heuristics', [HeuristicController::class, 'index'])->name('heuristics.index');
     //Study Cases
     Route::get('study-cases', [StudyCaseController::class, 'index'])->name('study-cases.index');
-
+    Route::get('study-cases/{studyCase}', [StudyCaseController::class, 'show'])->name('study-cases.show');
+    Route::put('study-cases/{studyCase}/edit', [StudyCaseController::class, 'update'])->name('study-cases.update');
+    Route::post('study-cases', [StudyCaseController::class, 'create'])->name('study-cases.create');
+   // Route::put('study-case/{studyCase}', [StudyCAseController::class, 'update'])->name('study-case.update');
 
 });
 

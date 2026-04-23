@@ -11,9 +11,10 @@ class StudyCase extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id',
+        'last_user_id',
+        'assigned_user_id',
         'title',
-        'slug',
+        //'slug',
         'description',
         'system_name',
         'system_type',
@@ -21,6 +22,7 @@ class StudyCase extends Model
         'analysis_goal',
         'status',
         'risk_score',
+        'risk_level',
         'c_percentage',
         'current_layer',
         'current_step',
@@ -39,8 +41,16 @@ class StudyCase extends Model
         'risk_score' => 'decimal:2',
     ];
 
+    public function lastUser()
+    {
+        return $this->belongsTo(User::class, 'last_user_id');
+    }
+    public function assignedUser() {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
     public function owner () {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'owner_id');
     }
     public function users() {
         return $this->belongsToMany(User::class)

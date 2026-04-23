@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Heuristic;
 use App\Models\HumanFactor;
+use App\Models\UiTag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -13,20 +14,38 @@ class HeuristicController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index( Request $request )
     {
-        $heuristics = Heuristic::with('humanFactor')
-            ->orderBy('h_id')
-            ->paginate(4);
-        $heuristics_all = Heuristic::all();
+        $query = Heuristic::with(['humanFactor', 'uiTags'])
+            ->orderBy('h_id');
+
+        if ($request->filled('human_factor_id') && $request->human_factor_id !== 'all') {
+            $query->where('human_factor_id', $request->human_factor_id);
+        }
+        if ($request->filled('tag_slug') && $request->tag_slug !== 'all') {
+            $query->whereHas('uiTags', function($q) use ($request) {
+                $q->where('slug', $request->tag_slug);
+            });
+        }
+
+        $heuristics = $query
+            ->paginate(4)
+            ->withQueryString();
+        $heuristics_all = Heuristic::with('uiTags')->get();
         $humanFactors = HumanFactor::
             orderBy('id')
             ->get();
+        $tags = UiTag::orderBy('name')->get(['id', 'name', 'slug']);
 
         return Inertia::render('Heuristics/Index', [
             'heuristics' => $heuristics,
             'heuristics_all' => $heuristics_all,
             'human_factors' => $humanFactors,
+            'tags' => $tags,
+            'filters' => [
+                'human_factor_id' => $request->input('human_factor_id', 'all'),
+                'tag_slug' => $request->input('tag_slug', 'all'),
+            ],
         ]);
     }
 

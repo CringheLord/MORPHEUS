@@ -18,6 +18,9 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('avatar')->nullable();
+
+            $table->integer('completed_audits')->default(0);
+            $table->integer('active_analysis_cases')->default(0);
             $table->rememberToken();
             $table->timestamps();
         });
