@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('findings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
+            $table->foreignId('study_case_id')->constrained()->cascadeOnDelete();
             $table->foreignId('artifact_id')->constrained('artifacts')->cascadeOnDelete();
             $table->foreignId('heuristic_id')->constrained('heuristics')->nullOnDelete();
             $table->string('layer');
-            $table->
 
             $table->timestamps();
         });
