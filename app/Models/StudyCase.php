@@ -18,9 +18,11 @@ class StudyCase extends Model
         'description',
         'system_name',
         'system_type',
+        'main_device',
         'target_url',
         'analysis_goal',
         'status',
+        'sector',
         'risk_score',
         'risk_level',
         'c_percentage',
@@ -54,6 +56,11 @@ class StudyCase extends Model
     }
     public function users() {
         return $this->belongsToMany(User::class)
-        ->withTimestamps();
+            ->withPivot('current_layer')
+            ->withTimestamps();
+    }
+
+    public function tasks () {
+        return $this->hasMany(Task::class);
     }
 }

@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('study_case_user', function (Blueprint $table) {
+        Schema::create('artifacts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('study_case_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('current_layer')->nullable();
-
+            $table->foreignId('task_id')->constrained();
+            $table->foreignId('study_case_id')->constrained();
+            $table->string('image_url')->nullable();
+            $table->string('file_path')->nullable();
             $table->timestamps();
-
-            $table->unique(['study_case_id', 'user_id']);
         });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('study_case_user');
+        Schema::dropIfExists('artifacts');
     }
 };

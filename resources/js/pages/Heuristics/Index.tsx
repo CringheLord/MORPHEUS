@@ -4,10 +4,8 @@ import React from 'react';
 import HeuristicShow from '@/components/heuristics/heuristicShow';
 import HeuristicsStats from '@/components/heuristics/heuristicsStats';
 import { Input } from '@/components/ui/input';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import HumanFactorTable from '@/pages/HumanFactors/humanFactorTable';
 
-import { heuristics } from '@/routes';
 import type { Heuristic, Paginated, HumanFactor, uiTag } from '@/types';
 
 
@@ -53,7 +51,7 @@ export default function Index ({ heuristics, heuristics_all, human_factors, filt
                         <HeuristicsStats heuristics={heuristics_all} />
                     </div>
                     <div>
-                        <div className="glass-card glass-primary overflow-hidden rounded-lg border border-primary bg-card shadow-sm">
+                        <div className="glass-card glass-primary overflow-hidden rounded-lg border border-primary hover:border-secondary transition-colors bg-card shadow-sm">
                             <div className="border-outline-variant flex items-center justify-between border-b bg-surface-container-low p-6">
                                 <div>
                                     <h3 className="font-headline text-on-background text-lg font-bold tracking-widest uppercase">
@@ -65,11 +63,11 @@ export default function Index ({ heuristics, heuristics_all, human_factors, filt
                                     </p>
                                 </div>
                                 <div>
-                                    <Input />
+                                    <Input placeholder="Search..."/>
                                 </div>
                             </div>
                             <div className="max-h-57 overflow-y-auto">
-                                <table className="w-full border-collapse bg-muted text-left">
+                                <table className="w-full border-collapse bg-muted hover:border-secondary text-left">
                                     <thead className="sticky top-0 z-10 bg-muted">
                                         <tr className="border-outline-variant border-b">
                                             <th className="py-4 pr-2 pl-6 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">

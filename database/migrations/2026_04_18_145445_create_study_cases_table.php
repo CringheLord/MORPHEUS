@@ -24,6 +24,8 @@ return new class extends Migration
 
             $table->string('system_name');               // e.g. "HR Portal"
             $table->string('system_type')->nullable();  // web app, dashboard, e-commerce...
+            $table->string('main_device')->nullable();
+            $table->string('sector')->nullable();
             $table->string('target_url')->nullable();
             $table->text('analysis_goal')->nullable();
 
@@ -40,6 +42,9 @@ return new class extends Migration
 
             $table->timestamp('last_opened_at')->nullable();
             $table->string('last_opened_section')->nullable(); // route/section/layer shortcut
+
+            $table->string('brand_constraints')->default('default');  //L'AI non criticherà colori scuri se specifichi che il brand richiede un tono formale e autoritario.
+
 
             $table->json('meta')->nullable(); // flexible extra data while model is evolving
 

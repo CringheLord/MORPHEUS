@@ -21,6 +21,7 @@ return new class extends Migration
 
             $table->integer('completed_audits')->default(0);
             $table->integer('active_analysis_cases')->default(0);
+            $table->integer('last_study_case_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

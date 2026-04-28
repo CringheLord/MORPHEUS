@@ -1,11 +1,17 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Search, SquarePlus, FolderPlus, ChevronsLeft } from 'lucide-react';
+import {
+    Search,
+    SquarePlus,
+    FolderPlus,
+    ChevronsLeft,
+    Columns4,
+    Activity,
+    AlertTriangle,
+} from 'lucide-react';
 import React from 'react';
-import { route } from 'ziggy-js';
 import ScCard from '@/components/studyCase/sc-card';
 import { Button } from '@/components/ui/button';
 
-import studyCases from '@/routes/study-cases';
 
 import type { StudyCase, Paginated} from '@/types';
 
@@ -41,9 +47,7 @@ export default function Index( { StudyCases, totalSC, AvgSC }: Props) {
                     <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div className="flex flex-col justify-between rounded-xl border border-muted bg-card p-6 shadow-sm md:col-span-1">
                             <div className="mb-4 flex items-center justify-between">
-                                <span className="material-symbols-outlined bg-primary-fixed rounded-lg p-2 text-primary">
-                                    folder_open
-                                </span>
+                                <Columns4 className="bg-primary-fixed size-8 text-primary" />
                                 <span className="bg-primary-fixed rounded px-2 py-1 text-xs font-bold text-primary">
                                     +12%
                                 </span>
@@ -59,9 +63,7 @@ export default function Index( { StudyCases, totalSC, AvgSC }: Props) {
                         </div>
                         <div className="flex flex-col justify-between rounded-xl border border-primary bg-card p-6 shadow-sm md:col-span-1">
                             <div className="mb-4 flex items-center justify-between">
-                                <span className="material-symbols-outlined bg-secondary-fixed rounded-lg p-2 text-secondary">
-                                    insights
-                                </span>
+                                <Activity className="bg-secondary-fixed size-8  text-secondary" />
                                 <span className="bg-secondary-fixed rounded px-2 py-1 text-xs font-bold text-secondary">
                                     Active
                                 </span>
@@ -75,11 +77,9 @@ export default function Index( { StudyCases, totalSC, AvgSC }: Props) {
                         </div>
                         <div className="border-surface-variant flex flex-col justify-between rounded-xl border bg-card p-6 shadow-sm md:col-span-1">
                             <div className="mb-4 flex items-center justify-between">
-                                <span className="material-symbols-outlined bg-tertiary-fixed rounded-lg p-2 text-tertiary">
-                                    task_alt
-                                </span>
+                                <Activity className="bg-tertiary-fixed size-8 text-tertiary" />
                                 <span className="bg-tertiary-fixed rounded px-2 py-1 text-xs font-bold text-tertiary">
-                                    Weekly
+                                    Weekly /all times?
                                 </span>
                             </div>
                             <div>
@@ -93,11 +93,9 @@ export default function Index( { StudyCases, totalSC, AvgSC }: Props) {
                         </div>
                         <div className="flex flex-col justify-between rounded-xl border border-secondary bg-card p-6 text-card-foreground shadow-lg md:col-span-1">
                             <div className="mb-4 flex items-center justify-between">
-                                <span className="material-symbols-outlined rounded-lg bg-white/20 p-2">
-                                    warning
-                                </span>
+                                <AlertTriangle className="size-8 text-destructive" />
                                 <span className="rounded bg-white/20 px-2 py-1 text-xs font-bold">
-                                    Optimal
+                                    Live
                                 </span>
                             </div>
                             <div>
@@ -136,7 +134,7 @@ export default function Index( { StudyCases, totalSC, AvgSC }: Props) {
                 </div>
                 <div className="mr-10 flex max-w-6xl flex-col items-center">
                     <div className="flex flex-row items-center justify-between gap-4">
-                        <div className="mt-2 flex flex-col items-center justify-between gap-4 rounded-xl bg-card-high p-4 lg:flex-row">
+                        <div className="mt-2  flex flex-col items-center justify-between gap-4 rounded-xl bg-card-high p-4 lg:flex-row">
                             <div className="relative w-full lg:w-96">
                                 <Search className="text-on-surface-variant absolute top-1/2 left-3 -translate-y-1/2" />
                                 <input

@@ -1,5 +1,4 @@
 import {
-    FolderOpen,
     MonitorSmartphone,
     Bug,
     Clock4,
@@ -30,7 +29,9 @@ type ShowFormData = {
     risk_level: 'low' | 'medium' | 'high';
     assigned_user_id: number | null;
     system_name: string;
-    system_type: string
+    system_type: string;
+    main_device: string;
+    sector: string;
     current_layer: string | null;
 }
 
@@ -116,7 +117,7 @@ const ContextStrip = ( {
         <div className="border-surface-variant font-label text-on-surface-variant flex flex-wrap items-center gap-x-6 gap-y-2 border-b bg-surface-container-low px-6 py-2 text-xs">
             <div className="flex items-center gap-1.5">
                 <MonitorSmartphone className="size-4 text-primary" />
-                <span className="opacity-70">System:</span>
+                <span className="opacity-70">System Name:</span>
                 {editingField === 'system_name' ? (
                     <div className="flex items-center gap-2">
                         <Input
@@ -162,9 +163,13 @@ const ContextStrip = ( {
                         <Pencil className="size-3 text-secondary opacity-0 group-hover:opacity-100" />
                     </button>
                 )}
+                {form.errors.system_name && (
+                    <span className="text-[11px] text-destructive">
+                        {form.errors.system_name}
+                    </span>
+                )}
             </div>
             <div className="flex items-center gap-1.5">
-                <MonitorSmartphone className="size-4 text-primary" />
                 <span className="opacity-70">System Type: </span>
                 {editingField === 'system_type' ? (
                     <div className="flex items-center gap-2">
@@ -211,8 +216,118 @@ const ContextStrip = ( {
                         <Pencil className="size-3 text-secondary opacity-0 group-hover:opacity-100" />
                     </button>
                 )}
+                {form.errors.system_type && (
+                    <span className="text-[11px] text-destructive">
+                        {form.errors.system_type}
+                    </span>
+                )}
+            </div>
+            <div className="flex items-center gap-1.5">
+                <span className="opacity-70">Main device: </span>
+                {editingField === 'main_device' ? (
+                    <div className="flex items-center gap-2">
+                        <Input
+                            type="text"
+                            value={form.data.main_device}
+                            onChange={(e) =>
+                                form.setData('main_device', e.target.value)
+                            }
+                            className="h-8 w-40"
+                            autoFocus
+                        />
+
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="size-7"
+                            disabled={form.processing}
+                            onClick={() => saveField('main_device')}
+                        >
+                            <Check className="size-4" />
+                        </Button>
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="size-7"
+                            disabled={form.processing}
+                            onClick={() => cancelFieldEdit('main_device')}
+                        >
+                            <X className="size-4" />
+                        </Button>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        className="group underline-secondary flex items-center gap-1 font-medium hover:underline"
+                        onClick={() => setEditingField('main_device')}
+                    >
+                        {form.data.main_device ||
+                            studyCase.main_device ||
+                            'N/A'}
+                        <Pencil className="size-3 text-secondary opacity-0 group-hover:opacity-100" />
+                    </button>
+                )}
+                {form.errors.main_device && (
+                    <span className="text-[11px] text-destructive">
+                        {form.errors.main_device}
+                    </span>
+                )}
             </div>
             <div className="h-5 w-1 border-2 border-secondary bg-secondary shadow-2xl shadow-primary"></div>
+            <div className="flex items-center gap-1.5">
+                <MonitorSmartphone className="size-4 text-primary" />
+                <span className="opacity-70">Sector: </span>
+                {editingField === 'sector' ? (
+                    <div className="flex items-center gap-2">
+                        <Input
+                            type="text"
+                            value={form.data.sector}
+                            onChange={(e) =>
+                                form.setData('sector', e.target.value)
+                            }
+                            className="h-8 w-40"
+                            autoFocus
+                        />
+
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="size-7"
+                            disabled={form.processing}
+                            onClick={() => saveField('sector')}
+                        >
+                            <Check className="size-4" />
+                        </Button>
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="size-7"
+                            disabled={form.processing}
+                            onClick={() => cancelFieldEdit('sector')}
+                        >
+                            <X className="size-4" />
+                        </Button>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        className="group underline-secondary flex items-center gap-1 font-medium hover:underline"
+                        onClick={() => setEditingField('sector')}
+                    >
+                        {form.data.sector || studyCase.sector || 'N/A'}
+                        <Pencil className="size-3 text-secondary opacity-0 group-hover:opacity-100" />
+                    </button>
+                )}
+                {form.errors.sector && (
+                    <span className="text-[11px] text-destructive">
+                        {form.errors.sector}
+                    </span>
+                )}
+            </div>
             <div className="flex items-center gap-1.5">
                 <Bug className="size-4 text-primary" />
                 <span className="opacity-70">Risk level:</span>
@@ -258,7 +373,7 @@ const ContextStrip = ( {
                 ) : (
                     <button
                         type="button"
-                        className="group underline-secondary flex items-center gap-1 font-medium hover:underline"
+                        className="group underline-secondary flex items-center gap-1 font-medium hover:underline hover:underline-offset-4"
                         onClick={() => setEditingField('risk_level')}
                     >
                         <RiskColor
@@ -270,6 +385,11 @@ const ContextStrip = ( {
                         />
                         <Pencil className="size-3 text-secondary opacity-0 group-hover:opacity-100" />
                     </button>
+                )}
+                {form.errors.risk_level && (
+                    <span className="text-[11px] text-destructive">
+                        {form.errors.risk_level}
+                    </span>
                 )}
             </div>
             <div className="flex items-center gap-1.5">
@@ -325,11 +445,11 @@ const ContextStrip = ( {
                 ) : (
                     <button
                         type="button"
-                        className="flex items-center gap-1 font-medium"
+                        className="group underline-secondary flex items-center gap-1 font-medium hover:underline"
                         onClick={() => setEditingField('status')}
                     >
                         {statusLabel(studyCase.status)}
-                        <Pencil className="size-3 opacity-60" />
+                        <Pencil className="size-3 text-secondary opacity-0 group-hover:opacity-100" />
                     </button>
                 )}
 

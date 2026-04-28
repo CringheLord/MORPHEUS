@@ -1,4 +1,4 @@
-import { useForm, Form } from '@inertiajs/react';
+
 import {
     ArrowLeftFromLine,
     BrainCog,
@@ -9,7 +9,6 @@ import {
     Layers,
     MonitorSmartphone,
     Network,
-    PencilLine,
     Save,
     Share,
     UserCheck,
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react';
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import type { StudyCase } from '@/types';
 type Props = {
@@ -65,7 +63,7 @@ const Edit = ({ studyCase }: Props) => {
                                         className="group flex items-center gap-1 transition-colors hover:text-secondary"
                                         href="/study-cases"
                                     >
-                                        <ArrowLeftFromLine className="size-6 text-primary transition-colors transition-transform group-hover:-translate-x-1 group-hover:text-secondary" />
+                                        <ArrowLeftFromLine className="size-6 text-primary transition-transform group-hover:-translate-x-1 group-hover:text-secondary" />
                                         Return{' '}
                                         <span className="transition-transform group-hover:uppercase">
                                             without

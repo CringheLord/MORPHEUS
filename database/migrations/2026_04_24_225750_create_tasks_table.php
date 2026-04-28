@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('study_case_user', function (Blueprint $table) {
+        Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('study_case_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('current_layer')->nullable();
+            $table->string('flow_name');
+            $table->string('user_type');  //utente novizio, medio, esperto, operatore critico
+            $table->string('user_role');
+            $table->text('user_intent');
+            $table->integer('stress_level')->default(5);
+            $table->string('cost_of_error')->default('medium');
 
             $table->timestamps();
-
-            $table->unique(['study_case_id', 'user_id']);
         });
     }
 
@@ -28,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('study_case_user');
+        Schema::dropIfExists('tasks');
     }
 };

@@ -54,16 +54,25 @@ class StudyCaseController extends Controller
         $studyCase->system_name = 'insert your system name here';
         $studyCase->system_type = 'insert your system type here';
         $studyCase->save();
-        return Inertia::render('study-cases/Show', ['studyCase' => $studyCase]);
+        return route('study-cases.show', $studyCase);
     }
 
     public function show(StudyCase $studyCase)
     {
-        $studyCase->load(['owner', 'lastUser', 'assignedUser', 'users']);
+        $studyCase->load(['owner', 'lastUser', 'assignedUser', 'users', 'tasks']);
+
+        $currentUser = $studyCase->users->firstWhere('id', Auth::id());
+
+        $user = Auth::user();
+        $user->last_study_case_id = $studyCase->id;
+        $user->save();
+
 
         return Inertia::render('study-cases/Show', [
             'studyCase' => $studyCase,
             'relatedUsers' => $studyCase->users,
+            'currentLayerFromPivot' => $currentUser?->pivot?->current_layer,
+            'tasks' => $studyCase->tasks()->paginate(7),
         ]);
     }
 
@@ -77,8 +86,12 @@ class StudyCaseController extends Controller
             'assigned_user_id' => ['sometimes', 'nullable', 'exists:users,id'],
             'system_name' => ['sometimes', 'required', 'string', 'max:255'],
             'system_type' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'main_device' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'sector' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'risk_level' => ['sometimes', 'nullable', 'in:low,medium,high'],
             'current_layer' => ['sometimes', 'nullable', 'in:interface,cognitive,organizational,review'],
         ]);
+
 
         if (
             array_key_exists('assigned_user_id', $validated)

@@ -1,35 +1,33 @@
-import { Link } from '@inertiajs/react';
-import { useForm, Form } from '@inertiajs/react';
+
+import { router, useForm } from '@inertiajs/react';
 import {
     Layers,
-    BrainCog,
     Network,
     ArrowLeftFromLine,
-    Share,
-    FolderOutput,
-    PencilLine,
     FolderOpen,
-    MonitorSmartphone,
-    Bug,
-    Clock4,
-    UserRoundPen,
     Pencil,
     Check,
     X,
+    BrainCircuit,
 } from 'lucide-react';
 
 import React from 'react';
 
 import ActionMenu from '@/components/studyCase/ActionMenu';
 import ContextStrip from '@/components/studyCase/contextStrip';
-import { Button } from '@/components/ui/button';
 
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
+import CognitiveLayer from '@/pages/study-cases/CognitiveLayer';
+import InterfaceLayer from '@/pages/study-cases/InterfaceLayer';
+import OrganizationalLayer from '@/pages/study-cases/OrganizationalLayer';
+
 import studyCases from '@/routes/study-cases';
 
 
 
-import type { StudyCase, User } from '@/types';
+import type { StudyCase, User, Task } from '@/types';
 
 
 type ShowFormData = {
@@ -39,30 +37,65 @@ type ShowFormData = {
     assigned_user_id: number | null;
     system_name: string;
     system_type: string;
+    main_device: string;
+    sector: string;
     current_layer: string | null;
 };
+
+type LayerKey = 'interface' | 'cognitive' | 'organizational';
 
 type Props = {
     studyCase: StudyCase;
     relatedUsers: User[];
-}
+    tasks: Task[];
+    currentLayerFromPivot?: LayerKey | null;
+};
 
 
 
-const Show = ({ studyCase, relatedUsers }: Props) => {
+const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks }: Props) => {
     const [editingField, setEditingField] = React.useState<string | null>(null);
+    const [currentLayer, setCurrentLayer] = React.useState < LayerKey > (
+        currentLayerFromPivot ?? 'interface',
+    );
+
+    const handleLayerChange = (layer: LayerKey ) => {
+        setCurrentLayer(layer);
+
+        router.put(
+            studyCases.currentLayerFromPivot(studyCase.id).url,
+            { current_layer: layer },
+            {
+                preserveScroll: true,
+                preserveState: true,
+            },
+        );
+    };
+
+    const renderLayer = () => {
+        switch (currentLayer) {
+            case 'interface':
+                return <InterfaceLayer studyCase={studyCase} tasks={tasks}/>
+            case 'cognitive':
+                return <CognitiveLayer studyCase={studyCase}/>
+            case 'organizational':
+                return <OrganizationalLayer studyCase={studyCase} />
+        }
+    }
 
     const form = useForm<ShowFormData>({
         title: studyCase.title ?? '',
-        risk_value: studyCase.risk_level,
+        risk_level: studyCase.risk_level,
         status: studyCase.status ?? 'draft',
         assigned_user_id: studyCase.assigned_user_id ?? null,
         system_name: studyCase.system_name ?? '',
         system_type: studyCase.system_type ?? '',
+        main_device: studyCase.main_device ?? '',
+        sector: studyCase.sector ?? '',
         current_layer: studyCase.current_layer ?? null,
     });
 
-    const saveField  = (field: keyof ShowFormData)=> {
+    const saveField = (field: keyof ShowFormData) => {
         form.put(studyCases.update(studyCase.id).url, {
             preserveScroll: true,
             preserveState: true,
@@ -72,15 +105,21 @@ const Show = ({ studyCase, relatedUsers }: Props) => {
             },
             onError: () => {
                 // for select-like fields, rollback to last persisted values
-                if (field === 'status'){
+                if (field === 'status') {
                     form.setData('status', studyCase.status ?? 'draft');
                     setEditingField(null);
                 }
 
                 if (field === 'assigned_user_id') {
-                    form.setData('assigned_user_id',
-                        studyCase.assigned_user_id ?? null
+                    form.setData(
+                        'assigned_user_id',
+                        studyCase.assigned_user_id ?? null,
                     );
+                    setEditingField(null);
+                }
+
+                if (field === 'risk_level') {
+                    form.setData('risk_level', studyCase.risk_level ?? 'low');
                     setEditingField(null);
                 }
             },
@@ -106,6 +145,15 @@ const Show = ({ studyCase, relatedUsers }: Props) => {
                 break;
             case 'system_type':
                 form.setData('system_type', studyCase.system_type ?? '');
+                break;
+            case 'main_device':
+                form.setData('main_device', studyCase.main_device ?? '');
+                break;
+            case 'sector':
+                form.setData('sector', studyCase.sector ?? '');
+                break;
+            case 'risk_level':
+                form.setData('risk_level', studyCase.risk_level ?? '');
                 break;
             case 'current_layer':
                 form.setData('current_layer', studyCase.current_layer ?? null);
@@ -220,7 +268,12 @@ const Show = ({ studyCase, relatedUsers }: Props) => {
                     >
                         {/* Active Tab */}
                         <button
-                            aria-current="page"
+                            aria-current={
+                                currentLayer === 'interface'
+                                    ? 'page'
+                                    : undefined
+                            }
+                            onClick={() => handleLayerChange('interface')}
                             className="font-label group relative flex items-center gap-2 border-b-2 border-primary px-1 py-4 text-sm font-medium whitespace-nowrap text-primary transition-colors hover:text-secondary"
                         >
                             <Layers className="size-7 text-primary transition-colors group-hover:text-secondary" />
@@ -228,12 +281,28 @@ const Show = ({ studyCase, relatedUsers }: Props) => {
                             <span className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-100 transform bg-primary transition-transform duration-300"></span>
                         </button>
                         {/* Inactive Tabs */}
-                        <button className="font-label group relative flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap text-primary transition-colors hover:text-secondary">
-                            <BrainCog className="size-7 text-primary transition-colors group-hover:text-secondary" />
+                        <button
+                            className="font-label group relative flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap text-primary transition-colors hover:text-secondary"
+                            aria-current={
+                                currentLayer === 'cognitive'
+                                    ? 'page'
+                                    : undefined
+                            }
+                            onClick={() => handleLayerChange('cognitive')}
+                        >
+                            <BrainCircuit className="size-7 text-primary transition-colors group-hover:text-secondary" />
                             Cognitive Layer
                             <span className="bg-outline-variant absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 transform transition-transform duration-300 group-hover:scale-x-100"></span>
                         </button>
-                        <button className="group font-label group relative flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap text-primary transition-colors hover:text-secondary">
+                        <button
+                            className="group font-label group relative flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap text-primary transition-colors hover:text-secondary"
+                            aria-current={
+                                currentLayer === 'organizational'
+                                    ? 'page'
+                                    : undefined
+                            }
+                            onClick={() => handleLayerChange('organizational')}
+                        >
                             <Network className="size-7 text-primary transition-colors group-hover:text-secondary" />
                             Organizational Layer
                             <span className="bg-outline-variant absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 transform transition-transform duration-300 group-hover:scale-x-100"></span>
@@ -241,6 +310,7 @@ const Show = ({ studyCase, relatedUsers }: Props) => {
                     </nav>
                 </div>
             </header>
+            <main className="flex-1">{renderLayer()}</main>
         </div>
     );
 };

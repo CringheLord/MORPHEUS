@@ -50,9 +50,24 @@ export type StudyCase = {
     assigned_user_id?: number | null;
     system_name?: string | null;
     system_type?: string | null;
-    current_layer?: string | null;
+    main_device?: string | null;
+    sector?: string | null;
+    currentLayerFromPivot?: string | null;
+
+    tasks?: Task[] | null;
 
     completed_at: string | null;
     created_at: string;
     updated_at: string | null;
+};
+
+export type Task = {
+    id: number;
+    study_case_id: number; //Novice (Low technological confidence)
+    flow_name: string; //Average User (Standard daily use)
+    user_type: 'novice' | 'average_user' | 'expert' | 'critical_operator'; //--> //Expert (Industry specialist)
+    user_role: string;
+    user_intent: string;
+    stress_level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; //Critical Operator (Under constant stress)
+    cost_of_error: 'low' | 'medium' | 'critical';
 };

@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'avatar'])]
+#[Fillable(['name', 'email', 'password', 'avatar', 'last_study_case_id', 'active_analysis_cases', 'completed_audits', 'current_layer'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -43,4 +43,9 @@ class User extends Authenticatable
     public function StudyCases() {
         return $this->belongsToMany(StudyCase::class);
     }
+
+    /*public function LastStudyCase() {
+        return $this->belongsTo(StudyCase::class, 'last_study_case_id')
+            ->withPivot('current_layer');
+    }*/
 }

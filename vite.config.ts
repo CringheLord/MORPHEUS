@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
+const devServerHost = process.env.VITE_DEV_SERVER_HOST ?? '127.0.0.1';
+const devServerPort = Number(process.env.VITE_DEV_SERVER_PORT ?? 5173);
+const hmrHost = process.env.VITE_HMR_HOST;
+const hmrProtocol = process.env.VITE_HMR_PROTOCOL ?? 'ws';
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -22,4 +27,19 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    server: {
+        host: devServerHost,
+        port: devServerPort,
+        ...(hmrHost
+            ? {
+                  hmr: {
+                      host: hmrHost,
+                      protocol: hmrProtocol,
+                  },
+              }
+            : {}),
+    },
 });
+
+
+
