@@ -14,7 +14,7 @@ WORKDIR /var/www/html
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
-RUN npm ci
+RUN npm install
 RUN npm run build
 
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT}
