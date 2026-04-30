@@ -45,7 +45,7 @@ export default function EvaluationPatternDetailDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 showCloseButton={false}
-                className="border-outline-variant h-[90vh] !w-[95vw] !max-w-[95vw] overflow-hidden rounded-3xl border bg-card p-0 shadow-2xl sm:!max-w-[95vw] lg:!max-w-7xl"
+                className="border-outline-variant h-[90vh] !w-[95vw] !max-w-[95vw] overflow-hidden rounded-3xl border bg-card p-0 shadow-2xl sm:!max-w-[95vw] lg:!max-w-8xl"
             >
                 <DialogHeader className="border-b border-border bg-card px-8 pt-6 pb-5">
                     <div className="flex items-start justify-between gap-6">
@@ -194,7 +194,7 @@ export default function EvaluationPatternDetailDialog({
                                 </h3>
                             </div>
 
-                            <DarkDetailBlock
+                            <HighlightedBlock
                                 label="Audit Rule"
                                 value={evaluationPattern.audit_rule}
                             />
@@ -402,7 +402,7 @@ function HighlightedBlock({
     }
 
     return (
-        <div className="rounded-2xl border-l-4 border-primary dark:border-secondary bg-primary/5 p-5">
+        <div className="rounded-2xl border-l-4 border-primary bg-primary/5 p-5">
             <h3 className="mb-2 text-xs font-black tracking-wide text-primary uppercase">
                 {label}
             </h3>
