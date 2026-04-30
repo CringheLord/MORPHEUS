@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Heuristic;
+use App\Models\EvaluationPattern;
 use App\Models\HumanFactor;
 use App\Models\UiTag;
 use Illuminate\Database\Seeder;
@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-class HeuristicsImportSeeder extends Seeder
+class EvaluationPatternImportSeeder extends Seeder
 {
 
     public function run(): void
@@ -97,7 +97,7 @@ class HeuristicsImportSeeder extends Seeder
         ];
 
 
-        $path = storage_path('app/private/database_euristiche_master_normalized_v2.json');
+        $path = database_path('data/New_Heuristics.json');
 
         if (! File::exists($path)) {
             throw new \RuntimeException("JSON file not found at: {$path}");
@@ -107,7 +107,7 @@ class HeuristicsImportSeeder extends Seeder
         $records = json_decode($json, true);
 
         if (! is_array($records)) {
-            throw new \RuntimeException('Invalid JSON structure: expected an array of heuristics.');
+            throw new \RuntimeException('Invalid JSON structure: expected an array of evaluationPatterns.');
         }
 
         DB::transaction(function () use ($human_factors, $records) {
@@ -135,8 +135,8 @@ class HeuristicsImportSeeder extends Seeder
                     ]
                 );
 
-                // Heuristics
-                $heuristic = Heuristic::updateOrCreate(
+                // EvaluationPattern
+                $evaluationPattern = EvaluationPattern::updateOrCreate(
                     [
                         'h_id' => $item['h_id'],
                     ],
@@ -150,12 +150,15 @@ class HeuristicsImportSeeder extends Seeder
                         'human_factor_exp' => $item['part_a']['human_factor_exp'] ?? null,
                         'error' => $item['part_a']['error'] ?? null,
                         'mitigation' => $item['part_a']['mitigation'] ?? null,
+                        'criticality_context' => $item['part_a']['criticality_context'] ?? null,
+                        'evidence' => $item['part_a']['evidence'] ?? null,
                         //part_b
                         'audit_rule' => $item['part_b']['audit_rule'] ?? null,
                         'violations' => $item['part_b']['violations'] ?? null,
                         'security_risk' => $item['part_b']['security_risk'] ?? null,
                         'remediation' => $item['part_b']['remediation'] ?? null,
                         'org_question' => $item['part_b']['org_question'] ?? null,
+                        'reference' => $item['part_b']['reference'] ?? null,
                     ]
                 );
 
@@ -179,7 +182,7 @@ class HeuristicsImportSeeder extends Seeder
                 }
 
                 // Sync pivot
-                $heuristic->uiTags()->sync($tagIds);
+                $evaluationPattern->uiTags()->sync($tagIds);
             }
         });
 

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Heuristic extends Model
+class EvaluationPattern extends Model
 {
     protected $fillable = [
         'h_id',
@@ -16,18 +16,22 @@ class Heuristic extends Model
         'human_factor_exp',
         'error',
         'mitigation',
+        'criticality_context',
+        'organizational_link',
+        'evidence',
         'audit_rule',
         'violations',
         'security_risk',
         'remediation',
         'org_question',
+        'reference',
     ];
 
     public function humanFactor() {
         return $this->belongsTo(HumanFactor::class);
     }
     public function uiTags() {
-        return $this->belongsToMany(UiTag::class, 'heuristic_ui_tag')
+        return $this->belongsToMany(UiTag::class, 'evaluation_pattern_ui_tag')
             ->withTimestamps();
     }
 }

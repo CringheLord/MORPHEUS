@@ -39,7 +39,7 @@ class StudyCaseController extends Controller
         })
             ->count();
 
-        return Inertia::render('study-cases/Index', [
+        return Inertia::render('study-cases/EPIndex', [
             'StudyCases' => $studyCases,
             'totalSC' => $totalSC,
             'AvgSC' => $AvgSC,

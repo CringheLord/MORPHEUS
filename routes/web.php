@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\StudyCaseController;
-use App\Http\Controllers\HeuristicController;
+use App\Http\Controllers\EvaluationPatternController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -13,8 +13,8 @@ Route::inertia('/', 'welcome', [
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
 
-    //Heuristics
-    Route::get('heuristics', [HeuristicController::class, 'index'])->name('heuristics.index');
+    //EvaluationPattern
+    Route::get('evaluation-patterns', [EvaluationPatternController::class, 'index'])->name('evaluation-patterns.index');
     //Study Cases
     Route::get('study-cases', [StudyCaseController::class, 'index'])->name('study-cases.index');
     Route::get('study-cases/{studyCase}', [StudyCaseController::class, 'show'])->name('study-cases.show');

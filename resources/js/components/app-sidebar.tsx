@@ -22,7 +22,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import  heuristics  from '@/routes/heuristics';
+import evaluationPatterns from '@/routes/evaluation-patterns';
 import studyCases from '@/routes/study-cases';
 
 import type { NavItem } from '@/types';
@@ -39,8 +39,8 @@ const mainNavItems: NavItem[] = [
         icon: Book,
     },
     {
-        title: 'Heuristics',
-        href: heuristics.index(),
+        title: 'Evaluation Patterns',
+        href: evaluationPatterns.index(),
         icon: LucideScale3D,
     },
 ];

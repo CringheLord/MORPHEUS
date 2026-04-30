@@ -1,11 +1,12 @@
 import type { User } from './auth';
 
-export type Heuristic = {
+export type EvaluationPattern = {
     id: number;
     h_id: string;
     title: string;
     icon: string;
-    human_factor_id: object;
+    human_factor_id: number;
+    human_factor: HumanFactor;
     incidence_rate: number;
     trigger: string;
     examples: string;
@@ -17,6 +18,7 @@ export type Heuristic = {
     security_risk: string;
     remediation: string;
     org_question: string;
+    number_of_violations: number;
 
     ui_tags: uiTag[];
 };
@@ -24,14 +26,15 @@ export type Heuristic = {
 export type uiTag = {
     id: number;
     name: string;
+    category: string;
     slug: string;
 };
 
 export type HumanFactor = {
     id: number;
-    h_id: string;
-    title: string;
-    description: string;
+    name: string;
+    category: string;
+    icon: string;
 };
 
 export type StudyCase = {

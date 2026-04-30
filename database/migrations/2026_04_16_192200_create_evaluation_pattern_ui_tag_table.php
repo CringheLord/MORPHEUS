@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('heuristic_ui_tag', function (Blueprint $table) {
+        Schema::create('evaluation_pattern_ui_tag', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("heuristic_id")->constrained();
+            $table->foreignId("evaluation_pattern_id")->constrained();
             $table->foreignId("ui_tag_id")->constrained();
             $table->timestamps();
         });
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('heuristic_ui_tag');
+        Schema::dropIfExists('evaluation_pattern_ui_tag');
     }
 };

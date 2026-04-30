@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
-import heuristics from '@/routes/heuristics';
+import heuristics from '@/routes/evaluationPatterns';
 import type { Heuristic } from '@/types';
 
 
@@ -14,7 +14,7 @@ type Props = {
     heuristics: Heuristic[];
 }
 
-const HeuristicsStats = ({ heuristics }: Props) => {
+const EvaluationPatternsStats = ({ heuristics }: Props) => {
     const heuristics_tot = heuristics.length;
     const incidence_rate = heuristics.reduce((acc, heuristic) => acc + heuristic.incidence_rate, 0) / heuristics_tot;
 
@@ -84,4 +84,4 @@ const HeuristicsStats = ({ heuristics }: Props) => {
         </div>
     );
 };
-export default HeuristicsStats;
+export default EvaluationPatternsStats;

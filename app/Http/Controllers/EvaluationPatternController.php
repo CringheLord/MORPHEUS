@@ -2,43 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Heuristic;
+use App\Models\EvaluationPattern;
 use App\Models\HumanFactor;
 use App\Models\UiTag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
-class HeuristicController extends Controller
+class EvaluationPatternController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index( Request $request )
+    public function index(Request $request)
     {
-        $query = Heuristic::with(['humanFactor', 'uiTags'])
+        $query = EvaluationPattern::with(['humanFactor', 'uiTags'])
             ->orderBy('h_id');
 
         if ($request->filled('human_factor_id') && $request->human_factor_id !== 'all') {
             $query->where('human_factor_id', $request->human_factor_id);
         }
+
         if ($request->filled('tag_slug') && $request->tag_slug !== 'all') {
-            $query->whereHas('uiTags', function($q) use ($request) {
+            $query->whereHas('uiTags', function ($q) use ($request) {
                 $q->where('slug', $request->tag_slug);
             });
         }
+        $heuristics_all = EvaluationPattern::all();
 
-        $heuristics = $query
-            ->paginate(4)
-            ->withQueryString();
-        $heuristics_all = Heuristic::with('uiTags')->get();
-        $humanFactors = HumanFactor::
-            orderBy('id')
-            ->get();
+        $evaluation_patterns = $query->get();
+
+        $heuristics_all = EvaluationPattern::with(['humanFactor', 'uiTags'])->get();
+
+        $humanFactors = HumanFactor::orderBy('id')->get();
+
         $tags = UiTag::orderBy('name')->get(['id', 'name', 'slug']);
 
-        return Inertia::render('Heuristics/Index', [
-            'heuristics' => $heuristics,
+        return Inertia::render('EvaluationPattern/EPIndex', [
+            'evaluation_patterns' => $evaluation_patterns,
             'heuristics_all' => $heuristics_all,
             'human_factors' => $humanFactors,
             'tags' => $tags,

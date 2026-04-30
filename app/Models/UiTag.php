@@ -11,8 +11,8 @@ class UiTag extends Model
         'slug',
     ];
 
-    public function heuristics() {
-        return $this->belongsToMany(Heuristic::class, 'heuristic_ui_tag');
+    public function evaluationPattern() {
+        return $this->belongsToMany(EvaluationPattern::class, 'evaluation_pattern_ui_tag');
     }
 
 }

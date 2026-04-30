@@ -6,8 +6,9 @@ import AppLayout from '@/layouts/app-layout';
 import AuditLayout from '@/layouts/audit-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import '@/lib/gsap';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'MORPHEUS';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

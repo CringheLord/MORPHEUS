@@ -12,7 +12,7 @@ class HumanFactor extends Model
         'category',
         'icon',
     ];
-    public function heuristics() {
-        return $this->hasMany(Heuristic::class);
+    public function evaluationPatterns() {
+        return $this->hasMany(EvaluationPattern::class);
     }
 }

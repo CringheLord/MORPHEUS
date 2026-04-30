@@ -84,7 +84,7 @@ class StudyCaseFactory extends Factory
             'last_opened_at' => fake()->optional(0.8)->dateTimeBetween('-7 days', 'now'),
             'last_opened_section' => fake()->randomElement([
                 'overview',
-                'heuristics',
+                'evaluationPatterns',
                 'violations',
                 'report',
                 null,

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('findings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('study_case_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('artifact_id')->constrained('artifacts')->cascadeOnDelete();
-            $table->foreignId('heuristic_id')->constrained('heuristics')->nullOnDelete();
+            $table->foreignId('artifact_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('evaluation_pattern_id')->constrained();
             $table->string('layer');
 
             $table->timestamps();

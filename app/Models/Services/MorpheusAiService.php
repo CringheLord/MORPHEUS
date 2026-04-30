@@ -5,7 +5,7 @@ namespace App\Models\Services;
 use OpenAI;
 use App\Models\Task;
 use App\Models\Finding;
-use App\Models\Heuristic;
+use App\Models\EvaluationPattern;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
@@ -37,7 +37,7 @@ class MorpheusAiService
             return;
         }
 
-        $heuristics = Heuristic::whereIn('h_id', $selectedHeuristicIds)->get();
+        $heuristics = EvaluationPattern::whereIn('h_id', $selectedHeuristicIds)->get();
         $totalHeuristics = count($heuristics);
 
         if ($heuristics->isEmpty()) {
