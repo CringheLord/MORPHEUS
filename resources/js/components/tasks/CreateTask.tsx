@@ -171,13 +171,13 @@ export default function CreateTask({ open, onClose, studyCaseId, task,  }: Props
                                 className="h-14 w-full rounded-2xl border-input bg-surface-container-low px-5 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                             >
                                 <option value="novice_user">
-                                    Novice user (Low technological confidence)
+                                    Novice user
                                 </option>
                                 <option value="standard_user">
-                                    Standard user (Standard daily use)
+                                    Standard user
                                 </option>
                                 <option value="critical_operator">
-                                    Critical operator (Under constant stress)
+                                    Critical operator
                                 </option>
                             </select>
 
