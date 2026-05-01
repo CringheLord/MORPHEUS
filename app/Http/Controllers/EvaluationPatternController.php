@@ -19,6 +19,12 @@ class EvaluationPatternController extends Controller
         $query = EvaluationPattern::with(['humanFactor', 'uiTags'])
             ->orderBy('h_id');
 
+        if ($request->filled('category') && $request->category !== 'all') {
+            $query->whereHas('humanFactor', function ($q) use ($request) {
+                $q->where('category', $request->category);
+            });
+        }
+
         if ($request->filled('human_factor_id') && $request->human_factor_id !== 'all') {
             $query->where('human_factor_id', $request->human_factor_id);
         }
@@ -44,6 +50,7 @@ class EvaluationPatternController extends Controller
             'human_factors' => $humanFactors,
             'tags' => $tags,
             'filters' => [
+                'category' => $request->input('category', 'all'),
                 'human_factor_id' => $request->input('human_factor_id', 'all'),
                 'tag_slug' => $request->input('tag_slug', 'all'),
             ],

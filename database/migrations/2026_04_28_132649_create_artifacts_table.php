@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('artifacts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('task_id')->constrained();
-            $table->foreignId('study_case_id')->constrained();
             $table->string('image_url')->nullable();
             $table->string('file_path')->nullable();
             $table->timestamps();

@@ -21,6 +21,11 @@ type Props = {
     tasks: Paginated<Task>;
 }
 
+const extractImagesFromPDF = async (file: File) => {
+
+}
+
+
 const InterfaceLayer = ({ studyCase, tasks }: Props) => {
     const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
@@ -65,7 +70,7 @@ const InterfaceLayer = ({ studyCase, tasks }: Props) => {
                 <TaskIndex studyCase={studyCase} tasks={tasks} onEditTask={handleEditTask} />
             ) : (
                 <div className="flex flex-row">
-                    <div className="flex w-full grow flex-col gap-6 md:w-2/3 lg:w-3/4">
+                    <div className="flex w-full h-max-20 grow flex-col gap-6 md:w-2/3 lg:w-3/4">
                         {/*
                             <div className="mb-4 flex flex-col gap-2">
                                 <h1 className="font-headline text-on-surface text-3xl font-bold">
@@ -80,12 +85,12 @@ const InterfaceLayer = ({ studyCase, tasks }: Props) => {
                             </div>
                         */}
 
-                        <div className="bg-surface-container-lowest border-outline-variant flex min-h-100 grow flex-col items-center justify-center rounded-xl border p-12 text-center shadow-sm">
-                            <div className="mb-6 rounded-full bg-surface-container-low p-6">
+                        <div className="bg-card border-outline-variant h-[52vh] flex min-h-100 grow flex-col items-center justify-center rounded-xl border p-12 text-center shadow-sm">
+                            <div className="mb-4 rounded-full bg-surface-container-low p-6">
                                 <PencilRuler className="size-12 text-secondary" />
                             </div>
                             <h2 className="font-headline text-on-surface mb-2 text-2xl font-bold">
-                                No UI Findings Yet
+                                No Task Findings Yet
                             </h2>
                             <p className="text-on-surface-variant mb-8 max-w-md">
                                 The Interface Layer canvas is empty. Start an

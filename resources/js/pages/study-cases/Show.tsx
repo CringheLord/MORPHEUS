@@ -264,7 +264,7 @@ const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks }: Props) 
                 <div className="border-surface-variant bg-surface-container-lowest border-b px-6">
                     <nav
                         aria-label="Tabs"
-                        className="-mb-px flex space-x-8 overflow-x-auto"
+                        className="-mb-px flex space-x-8 overflow-x-auto justify-center"
                     >
                         {/* Active Tab */}
                         <button
@@ -274,11 +274,15 @@ const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks }: Props) 
                                     : undefined
                             }
                             onClick={() => handleLayerChange('interface')}
-                            className="font-label group relative flex items-center gap-2 border-b-2 border-primary px-1 py-4 text-sm font-medium whitespace-nowrap text-primary transition-colors hover:text-secondary"
+                            className="font-label group relative flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap text-primary transition-colors hover:text-secondary"
                         >
                             <Layers className="size-7 text-primary transition-colors group-hover:text-secondary" />
                             Interface Layer
-                            <span className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-100 transform bg-primary transition-transform duration-300"></span>
+                            {currentLayer === 'interface' ? (
+                                <span className="absolute inset-x-0 bottom-0 h-1 origin-left scale-x-100 transform bg-primary transition-transform duration-300"></span>
+                            ) : (
+                                <></>
+                            )}
                         </button>
                         {/* Inactive Tabs */}
                         <button
@@ -291,8 +295,12 @@ const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks }: Props) 
                             onClick={() => handleLayerChange('cognitive')}
                         >
                             <BrainCircuit className="size-7 text-primary transition-colors group-hover:text-secondary" />
-                            Cognitive Layer
-                            <span className="bg-outline-variant absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 transform transition-transform duration-300 group-hover:scale-x-100"></span>
+                            Cognitive Layer Interface Layer
+                            {currentLayer === 'cognitive' ? (
+                                <span className="absolute inset-x-0 bottom-0 h-1 origin-left scale-x-100 transform bg-primary transition-transform duration-300"></span>
+                            ) : (
+                                <></>
+                            )}
                         </button>
                         <button
                             className="group font-label group relative flex items-center gap-2 px-1 py-4 text-sm font-medium whitespace-nowrap text-primary transition-colors hover:text-secondary"
@@ -304,8 +312,12 @@ const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks }: Props) 
                             onClick={() => handleLayerChange('organizational')}
                         >
                             <Network className="size-7 text-primary transition-colors group-hover:text-secondary" />
-                            Organizational Layer
-                            <span className="bg-outline-variant absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 transform transition-transform duration-300 group-hover:scale-x-100"></span>
+                            Organizational Layer Interface Layer
+                            {currentLayer === 'organizational' ? (
+                                <span className="absolute inset-x-0 bottom-0 h-1 origin-left scale-x-100 transform bg-primary transition-transform duration-300"></span>
+                            ) : (
+                                <></>
+                            )}
                         </button>
                     </nav>
                 </div>

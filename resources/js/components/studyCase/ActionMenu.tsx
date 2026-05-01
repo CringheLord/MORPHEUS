@@ -223,7 +223,7 @@ return;
                                 ref={resetButtonRef}
                                 type="button"
                                 variant="ghost"
-                                className="text-sm"
+                                className="text-sm text-alert hover:bg-alert/10 hover:text-alert"
                                 onClick={toggleResetMenu}
                             >
                                 <RotateCcw className="size-4" />
@@ -261,13 +261,13 @@ return;
                             left: `${submenuPos.left}px`,
                             transformOrigin: 'top center',
                         }}
-                        className="fixed z-[140] flex min-w-[230px] -translate-x-1/2 flex-col rounded-2xl border bg-card-high p-2 shadow-2xl"
+                        className="fixed z-[140] flex min-w-[230px] -translate-x-1/2 flex-col rounded-2xl border border-alert bg-card-high p-2 shadow-2xl"
                     >
                         <motion.div variants={subMenuItemVariants}>
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="justify-start text-sm"
+                                className="justify-start text-sm hover:bg-alert/10"
                                 onClick={() => {
                                     onResetLayer('interface');
                                     setOpen(false);
@@ -282,7 +282,7 @@ return;
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="justify-start text-sm"
+                                className="justify-start text-sm hover:bg-alert/10"
                                 onClick={() => {
                                     onResetLayer('cognitive');
                                     setOpen(false);
@@ -297,7 +297,7 @@ return;
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="justify-start text-sm"
+                                className="justify-start text-sm hover:bg-alert/10"
                                 onClick={() => {
                                     onResetLayer('organizational');
                                     setOpen(false);
@@ -317,7 +317,7 @@ return;
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="justify-start text-sm"
+                                className="justify-start text-sm hover:bg-alert/10"
                                 onClick={() => {
                                     onResetLayer('all');
                                     setOpen(false);

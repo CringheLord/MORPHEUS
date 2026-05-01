@@ -101,22 +101,15 @@ export default function EvaluationPatternDetailDialog({
                                     </p>
                                 </div>
                             </div>
-
-                            <div className="grid flex-1 gap-4 md:grid-cols-2">
-                                <MetricCard
-                                    icon={<BarChart3 className="size-5" />}
-                                    label="Global Incidence Rate"
-                                    value={`${evaluationPattern.incidence_rate ?? 0}%`}
-                                />
-
+                            <div className="mr-50">
                                 <MetricCard
                                     icon={<BellRing className="size-5" />}
                                     label="Violations Flagged"
                                     value={
                                         evaluationPattern.number_of_violations
                                             ? String(
-                                                  evaluationPattern.number_of_violations,
-                                              )
+                                                evaluationPattern.number_of_violations,
+                                            )
                                             : 'Not provided'
                                     }
                                 />

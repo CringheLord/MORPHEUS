@@ -1,4 +1,6 @@
+import { router } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
+
 import {
     Bot,
     Bolt,
@@ -13,19 +15,161 @@ import {
     ZoomOut,
     CopyPlus,
 } from 'lucide-react';
+
+import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+import {  useState, useMemo, useRef } from 'react';
+
 import React from 'react';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 import AuditActionMenu from '@/components/audits/AuditActionMenu';
 import { Button } from '@/components/ui/button';
 
-import type { StudyCase, Task } from '@/types';
+import type { StudyCase, Task, EvaluationPattern } from '@/types';
+
 
 type Props = {
+    evaluationPattern: EvaluationPattern [];
     studyCase: StudyCase;
     task: Task;
 };
 
-const InterfaceAudit = ({ studyCase, task }: Props) => {
+
+
+
+
+
+
+const InterfaceAudit = ({ studyCase, task, evaluationPattern }: Props) => {
+
+    const [isUploadingPDF, setIsUploadingPDF] = useState(false);
+
+
+    const FileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const triggerFileInput = () => {
+        FileInputRef.current?.click();
+    }
+
+    const convertPDFtoImage = async (file: File): Promise<File[]> => {
+        const arrayBuffer = await file.arrayBuffer();
+
+        const pdf = await pdfjsLib.getDocument({
+            data: arrayBuffer,
+        }).promise
+
+        const images: File[] = [];
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+
+            const viewport = page.getViewport({ scale: 2.0 });
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            if (!context) {
+                throw new Error('Failed to create canvas context');
+            }
+
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            await page.render({
+                canvas,
+                canvasContext: context,
+                viewport,
+            }).promise;
+
+            const blob = await new Promise<Blob>((resolve, reject) => {
+                canvas.toBlob(
+                    (result) => {
+                        if (result) {
+                            resolve(result);
+                        } else {
+                            reject(new Error('Unable to convert PDF page to image.'));
+                        }
+                    },
+                    'image/jpeg',
+                    1.0,
+                );
+            });
+
+            const imageFile = new File(
+                [blob],
+                `step_${pageNum}_${Date.now()}.jpg`,
+                {
+                    type: 'image/jpeg',
+                },
+            );
+            images.push(imageFile);
+        }
+
+        return images;
+    };
+
+    const handleFileUpload = async (
+        event: React.ChangeEvent<HTMLInputElement>,
+    )=> {
+        const files = Array.from(event.target.files ?? []);
+
+        if (files.length === 0) {
+            return;
+        }
+
+        setIsUploadingPDF(true);
+
+        try {
+            const finalFilesToUpload: File[] = [];
+
+            for (const file of files) {
+                if (file.type === 'application/pdf') {
+                    const convertedImages = await convertPDFtoImage(file);
+                    finalFilesToUpload.push(...convertedImages);
+                } else {
+                    finalFilesToUpload.push(file);
+                }
+            }
+
+            router.post(
+                `/tasks/${task.id}/artifacts`,
+                {
+                    images: finalFilesToUpload,
+                },
+                {
+                    forceFormData: true,
+                    preserveScroll: true,
+
+                    onSuccess: () => {
+                        if (FileInputRef.current) {
+                            FileInputRef.current.value = '';
+                        }
+                    },
+                    onError: (errors) => {
+                        console.error('Error uploading files:', errors);
+                    },
+                    onFinish: () => {
+                        setIsUploadingPDF(false);
+                    },
+                },
+            );
+        } catch (error) {
+            console.error('PDF conversion error:', error);
+            alert('Unable to read the PDF. Check the console.');
+
+            setIsUploadingPDF(false);
+
+            if (FileInputRef.current) {
+                FileInputRef.current.value = '';
+            }
+        }
+
+    }
+
+
+
     return (
         <div className="bg-background text-foreground">
             <header className="fixed top-0 z-50 flex h-16 w-full items-center justify-between border-b border-border bg-card px-6 text-sm shadow-sm">
@@ -148,9 +292,19 @@ const InterfaceAudit = ({ studyCase, task }: Props) => {
                                 <label className="mb-4 block text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
                                     Screenshots
                                 </label>
-                                <CopyPlus className="size-5 text-secondary" />
+                                <input
+                                    type="file"
+                                    ref={FileInputRef}
+                                    className="fileInput hidden"
+                                    multiple
+                                    accept="image/*, application/pdf"
+                                    onChange={handleFileUpload}
+                                />
+                                <CopyPlus
+                                    className="size-5 text-primary hover:scale-120 hover:text-secondary dark:text-secondary dark:hover:text-primary"
+                                    onClick={triggerFileInput}
+                                />
                             </div>
-
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="group relative cursor-pointer">
                                     <div className="aspect-video overflow-hidden rounded-md border-2 border-primary ring-2 ring-primary/20">

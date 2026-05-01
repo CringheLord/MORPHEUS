@@ -40,7 +40,7 @@ type Props = {
 }
 
 type TaskForm = {
-    flow_name: string;
+    task_name: string;
     user_type: string;
     user_role: string;
     user_intent: string;
@@ -49,7 +49,7 @@ type TaskForm = {
 };
 
 const emptyTaskForm: TaskForm = {
-    flow_name: '',
+    task_name: '',
     user_type: 'standard_user',
     user_role: '',
     user_intent: '',
@@ -70,7 +70,7 @@ export default function CreateTask({ open, onClose, studyCaseId, task,  }: Props
 
         if (task) {
             form.setData({
-                flow_name: task.flow_name ?? '',
+                task_name: task.task_name ?? '',
                 user_type: task.user_type ?? 'standard_user',
                 user_role: task.user_role ?? '',
                 user_intent: task.user_intent ?? '',
@@ -146,15 +146,15 @@ export default function CreateTask({ open, onClose, studyCaseId, task,  }: Props
                             </Label>
 
                             <Input
-                                value={form.data.flow_name}
+                                value={form.data.task_name}
                                 onChange={(e) =>
-                                    form.setData('flow_name', e.target.value)
+                                    form.setData('task_name', e.target.value)
                                 }
-                                placeholder="e.g. Login with 2FA"
+                                placeholder="e.g. Insert patient's phone data"
                                 className="h-14 rounded-2xl bg-surface-container-low px-5"
                             />
 
-                            <InputError message={form.errors.flow_name} />
+                            <InputError message={form.errors.task_name} />
                         </div>
 
                         <div className="space-y-2">
@@ -175,9 +175,6 @@ export default function CreateTask({ open, onClose, studyCaseId, task,  }: Props
                                 </option>
                                 <option value="standard_user">
                                     Standard user (Standard daily use)
-                                </option>
-                                <option value="expert_user">
-                                    Expert user (Industry specialist)
                                 </option>
                                 <option value="critical_operator">
                                     Critical operator (Under constant stress)

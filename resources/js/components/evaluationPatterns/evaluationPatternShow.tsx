@@ -88,7 +88,7 @@ const EvaluationPatternShow = ({ evaluationPattern }: Props) => {
                                 <div>
                                     Category:
                                     <span className="text-m ml-2 rounded-full bg-secondary/10 px-2.5 py-1 text-secondary">
-                                        {evaluationPattern.human_factor.name}
+                                        {evaluationPattern.human_factor.category}
                                     </span>
                                 </div>
                             </div>

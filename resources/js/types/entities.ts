@@ -67,7 +67,7 @@ export type StudyCase = {
 export type Task = {
     id: number;
     study_case_id: number; //Novice (Low technological confidence)
-    flow_name: string; //Average User (Standard daily use)
+    task_name: string; //Average User (Standard daily use)
     user_type: 'novice' | 'average_user' | 'expert' | 'critical_operator'; //--> //Expert (Industry specialist)
     user_role: string;
     user_intent: string;

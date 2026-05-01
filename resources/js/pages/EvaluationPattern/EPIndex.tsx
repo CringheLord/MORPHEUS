@@ -10,6 +10,7 @@ import type { EvaluationPattern, HumanFactor, uiTag } from '@/types';
 type Filters = {
     human_factor_id: string;
     tag_slug: string;
+    category: string;
 };
 
 type Props = {
@@ -149,8 +150,8 @@ export default function EPIndex({ evaluation_patterns, human_factors, filters, t
                             </h2>
 
                             <p className="mt-1 text-sm text-muted-foreground">
-                                Browse the MORPHEUS evaluation pattern catalog and filter
-                                it by human factor or interface tag.
+                                Browse the MORPHEUS evaluation pattern catalog
+                                and filter it by human factor or interface tag.
                             </p>
                         </div>
 
@@ -160,10 +161,10 @@ export default function EPIndex({ evaluation_patterns, human_factors, filters, t
                                     <ListFilter className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
 
                                     <select
-                                        value={filters.human_factor_id ?? 'all'}
+                                        value={filters.category ?? 'all'}
                                         onChange={(e) =>
                                             updateFilter(
-                                                'human_factor_id',
+                                                'category',
                                                 e.target.value,
                                             )
                                         }
@@ -172,15 +173,15 @@ export default function EPIndex({ evaluation_patterns, human_factors, filters, t
                                         <option value="all">
                                             All Categories
                                         </option>
-
-                                        {human_factors.map((hf) => (
-                                            <option
-                                                key={hf.id}
-                                                value={String(hf.category)}
-                                            >
-                                                {hf.category}
-                                            </option>
-                                        ))}
+                                        <option value="cognitive">
+                                            Cognitive
+                                        </option>
+                                        <option value="behavioral">
+                                            Behavioral
+                                        </option>
+                                        <option value="emotional">
+                                            Emotional
+                                        </option>
                                     </select>
                                 </div>
                                 <div className="relative shrink-0">
@@ -243,12 +244,20 @@ export default function EPIndex({ evaluation_patterns, human_factors, filters, t
                         className="no-scrollbar max-h-[72vh] overflow-y-auto p-4"
                     >
                         <div className="grid gap-3">
-                            {evaluation_patterns.map((ep) => (
-                                <EvaluationPatternShow
-                                    key={ep.id}
-                                    evaluationPattern={ep}
-                                />
-                            ))}
+                            {evaluation_patterns.length > 0 ? (
+                                evaluation_patterns.map((ep) => (
+                                    <EvaluationPatternShow
+                                        key={ep.id}
+                                        evaluationPattern={ep}
+                                    />
+                                ))
+                            ) : (
+                                <div className="flex items-center justify-center">
+                                    <p className="m-4 w-fit rounded-lg border-t-4 border-b-4 border-border p-6 text-center text-lg text-muted-foreground hover:cursor-default">
+                                        No evaluation patterns found.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

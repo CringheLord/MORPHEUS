@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('study_case_id')->constrained()->cascadeOnDelete();
-            $table->string('flow_name');
-            $table->string('user_type');  //utente novizio, medio, esperto, operatore critico
+            $table->string('task_name');
+            $table->string('user_type');  //utente novizio, medio, operatore critico
             $table->string('user_role');
             $table->text('user_intent');
             $table->integer('stress_level')->default(5);

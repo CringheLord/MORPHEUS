@@ -87,10 +87,10 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                 ID
                             </th>
                             <th className="text-outline px-6 py-4 text-[11px] font-black tracking-wider uppercase">
-                                Flow Name
+                                Task Name
                             </th>
-                            <th className="text-outline px-10 py-4 text-[11px] font-black tracking-wider uppercase">
-                                User Type/Role
+                            <th className="text-outline flex items-center px-10 py-4 text-[11px] font-black tracking-wider uppercase gap-2">
+                                User Type<ChevronRight className="overflow-hidden size-4 text-ellipsis whitespace-nowrap text-card-foreground-secondary" />Role
                             </th>
                             <th className="text-outline px-6 py-4 text-[11px] font-black tracking-wider uppercase">
                                 User Intent
@@ -112,12 +112,11 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                             const shouldOpenUp = index >= tasks.data.length - 2;
 
                             return (
-
                                 <tr
                                     key={task.id}
-                                    onClick={() => router.get(
-                                        `/tasks/${task.id}/audits`,
-                                    )}
+                                    onClick={() =>
+                                        router.get(`/tasks/${task.id}/audits`)
+                                    }
                                     className="group cursor-pointer transition-colors hover:bg-accent/20"
                                 >
                                     <td className="px-6 py-4">
@@ -127,8 +126,8 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <span className="block text-sm font-bold">
-                                            {task.flow_name}
+                                        <span className="block overflow-hidden text-sm font-bold text-ellipsis whitespace-nowrap">
+                                            {task.task_name}
                                         </span>
                                     </td>
 
@@ -136,15 +135,21 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                         <div className="flex items-center gap-2">
                                             <PersonStanding className="text-card-foreground" />
                                             <span className="flex flex-row text-sm text-card-foreground">
-                                                {task.user_type}
-                                                <ChevronRight className="text-card-foreground-secondary" />
+                                                {task.user_type ===
+                                                'average_user'
+                                                    ? 'Standard User'
+                                                    : task.user_type ===
+                                                        'novice'
+                                                      ? 'Novice'
+                                                      : 'Critical Operator'}
+                                                <ChevronRight className="overflow-hidden text-ellipsis whitespace-nowrap text-card-foreground-secondary" />
                                                 {task.user_role}
                                             </span>
                                         </div>
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <p className="max-w-[200px] text-xs text-card-foreground">
+                                        <p className="max-w-[200px] overflow-hidden text-xs text-ellipsis whitespace-nowrap text-card-foreground">
                                             {task.user_intent}
                                         </p>
                                     </td>
@@ -165,18 +170,19 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                         </span>
                                     </td>
 
-                                    <td className="group relative px-6 py-4 text-right">
+                                    <td className="relative px-6 py-4 text-right">
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                setOpenMenuTaskId(
-                                                    (current) =>
-                                                        current === task.id
-                                                            ? null
-                                                            : task.id,
-                                                )
-                                            }
-                                            className="rounded-full text-primary transition-colors group-hover:text-secondary"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+
+                                                setOpenMenuTaskId((current) =>
+                                                    current === task.id
+                                                        ? null
+                                                        : task.id,
+                                                );
+                                            }}
+                                            className="rounded-full text-primary transition-colors group-hover:text-secondary hover:cursor-crosshair"
                                         >
                                             <EllipsisVertical className="size-4" />
                                         </button>
@@ -191,10 +197,9 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                             >
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        setOpenMenuTaskId(
-                                                            null,
-                                                        );
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setOpenMenuTaskId(null);
                                                         onEditTask(task);
                                                     }}
                                                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-card-foreground transition-colors hover:bg-surface-container-low"
@@ -210,9 +215,7 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                                             setOpenMenuTaskId(
                                                                 null,
                                                             );
-                                                            onDeleteTask(
-                                                                task,
-                                                            );
+                                                            onDeleteTask(task);
                                                         }}
                                                         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-surface-container-low"
                                                     >

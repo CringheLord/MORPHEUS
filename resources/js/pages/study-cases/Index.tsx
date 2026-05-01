@@ -100,10 +100,10 @@ export default function Index( { StudyCases, totalSC, AvgSC }: Props) {
                             </div>
                             <div>
                                 <span className="text-primary-fixed text-sm font-medium opacity-80">
-                                    Avg. Risk Factor
+                                    Violations Flagged
                                 </span>
                                 <p className="mt-1 text-3xl font-black">
-                                    {avgRisk}
+                                    200
                                 </p>
                             </div>
                         </div>

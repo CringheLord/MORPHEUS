@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\StudyCaseController;
 use App\Http\Controllers\EvaluationPatternController;
+use App\Http\Controllers\ArtifactController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -27,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     //Audits
     Route::get('tasks/{task}/audits', [TaskController::class, 'inspect'])->name('tasks.inspect');
+    Route::post('tasks/{task}/artifacts', [ArtifactController::class, 'store'])->name('tasks.audits.artifacts.store');
 });
 
 require __DIR__.'/settings.php';

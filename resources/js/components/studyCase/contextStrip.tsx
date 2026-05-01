@@ -529,13 +529,13 @@ const ContextStrip = ( {
                             </div>
                         ) : (
                             <button
-                                className="flex items-center gap-1 font-medium"
+                                className="group underline-secondary flex items-center gap-1 font-medium hover:underline"
                                 onClick={() =>
                                     setEditingField('assigned_user_id')
                                 }
                             >
                                 {assignedUserName}
-                                <Pencil className="size-3 opacity-60" />
+                                <Pencil className="size-3 text-secondary opacity-0 group-hover:opacity-100" />
                             </button>
                         )}
 

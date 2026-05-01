@@ -8,7 +8,7 @@ class Task extends Model
 {
     protected $fillable = [
         'study_case_id',
-        'flow_name',
+        'task_name',
         'user_type',
         'user_role',
         'user_intent',
@@ -18,5 +18,8 @@ class Task extends Model
 
     public function studyCase() {
         return $this->belongsTo(StudyCase::class, 'study_case_id');
+    }
+    public function artifacts() {
+        return $this->hasMany(Artifact::class);
     }
 }
