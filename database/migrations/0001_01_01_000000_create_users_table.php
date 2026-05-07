@@ -22,6 +22,10 @@ return new class extends Migration
             $table->integer('completed_audits')->default(0);
             $table->integer('active_analysis_cases')->default(0);
             $table->integer('last_study_case_id')->nullable();
+
+            $table->string('open_ai_api_key')->nullable();
+            //other API keys supported by the app
+
             $table->rememberToken();
             $table->timestamps();
         });

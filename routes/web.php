@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\QuestionnairesController;
 use App\Http\Controllers\StudyCaseController;
 use App\Http\Controllers\EvaluationPatternController;
 use App\Http\Controllers\ArtifactController;
@@ -25,6 +26,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //Study Cases / Tasks
     Route::post('study-cases/{studyCase}/tasks', [TaskController::class, 'store'])->name('study-cases.tasks.store');
     Route::put('study-cases/{studyCase}/tasks/{task}', [TaskCOntroller::class, 'update'])->name('study-cases.tasks.update');
+
+    Route::get('study-cases/{studyCase}/questionnaires/{questionnaire}', [QuestionnairesController::class, 'show'])->name('study-cases.questionnaires.show');
+    Route::post('study-cases/{studyCase}/questionnaires/store', [QuestionnairesController::class, 'store'])->name('study-cases.questionnaires.store');
+    Route::put('study-cases/{studyCase}/questionnaires/{questionnaire}/update', [QuestionnairesController::class, 'update'])->name('study-cases.questionnaires.update');
+
 
     //Audits
     Route::get('tasks/{task}/audits', [TaskController::class, 'inspect'])->name('tasks.inspect');

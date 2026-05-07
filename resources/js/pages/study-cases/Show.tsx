@@ -27,7 +27,7 @@ import studyCases from '@/routes/study-cases';
 
 
 
-import type { StudyCase, User, Task } from '@/types';
+import type { StudyCase, User, Task, Questionnaire } from '@/types';
 
 
 type ShowFormData = {
@@ -45,6 +45,7 @@ type ShowFormData = {
 type LayerKey = 'interface' | 'cognitive' | 'organizational';
 
 type Props = {
+    questionnaires: Questionnaire[] | null;
     studyCase: StudyCase;
     relatedUsers: User[];
     tasks: Task[];
@@ -53,23 +54,24 @@ type Props = {
 
 
 
-const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks }: Props) => {
+const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks, questionnaires }: Props) => {
     const [editingField, setEditingField] = React.useState<string | null>(null);
     const [currentLayer, setCurrentLayer] = React.useState < LayerKey > (
         currentLayerFromPivot ?? 'interface',
     );
 
+
     const handleLayerChange = (layer: LayerKey ) => {
         setCurrentLayer(layer);
 
-        router.put(
+        /*router.put(
             studyCases.currentLayerFromPivot(studyCase.id).url,
             { current_layer: layer },
             {
                 preserveScroll: true,
                 preserveState: true,
             },
-        );
+        );*/
     };
 
     const renderLayer = () => {
@@ -79,7 +81,7 @@ const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks }: Props) 
             case 'cognitive':
                 return <CognitiveLayer studyCase={studyCase}/>
             case 'organizational':
-                return <OrganizationalLayer studyCase={studyCase} />
+                return <OrganizationalLayer studyCase={studyCase} questionnaires={questionnaires} />
         }
     }
 

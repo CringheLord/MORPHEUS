@@ -66,4 +66,8 @@ class StudyCase extends Model
     public function artifacts () {
         return $this->hasManyThrough(Artifact::class, Task::class);
     }
+
+    public function questionnaires () {
+        return $this->hasMany(Questionnaire::class);
+    }
 }

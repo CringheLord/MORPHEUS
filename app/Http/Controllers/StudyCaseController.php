@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Questionnaire;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Models\StudyCase;
+use App\Models\Submission;
 
 class StudyCaseController extends Controller
 {
@@ -54,12 +56,16 @@ class StudyCaseController extends Controller
         $studyCase->system_name = 'insert your system name here';
         $studyCase->system_type = 'insert your system type here';
         $studyCase->save();
+
         return route('study-cases.show', $studyCase);
     }
 
     public function show(StudyCase $studyCase)
     {
         $studyCase->load(['owner', 'lastUser', 'assignedUser', 'users', 'tasks']);
+
+        $questionnaires = $studyCase->questionnaires()->withCount('questions', 'submissions')->get();
+
 
         $currentUser = $studyCase->users->firstWhere('id', Auth::id());
 
@@ -73,6 +79,7 @@ class StudyCaseController extends Controller
             'relatedUsers' => $studyCase->users,
             'currentLayerFromPivot' => $currentUser?->pivot?->current_layer,
             'tasks' => $studyCase->tasks()->paginate(7),
+            'questionnaires' => $questionnaires,
         ]);
     }
 

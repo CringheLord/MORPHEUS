@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -63,6 +64,8 @@ class ProfileController extends Controller
 
     public function update_profile_photo(Request $request)
     {
+
+
         $file = $request->file('image');
 
         $validated = $request->validate([
@@ -76,5 +79,25 @@ class ProfileController extends Controller
         Auth::user()->avatar = $path;
         Auth::user()->save();
         return Redirect::route('profile.edit')->with('status', 'profile-photo-updated');
+    }
+
+    public function update_ai_api(Request $request) {
+
+        $allowedKeys = [
+            'open_ai_api_key',
+            'google_api_key',
+            'anthropic_api_key',
+        ];
+
+        $validated = $request->validate([
+            'key' => ['required', 'string', 'max:255'],
+            'id' => ['required', 'string', Rule::in($allowedKeys)],
+        ]);
+        $user = Auth::user();
+        $user->{$validated['id']} = $validated['key'];
+        $user->save();
+        return Redirect::route('profile.ai_api_edit')
+            ->with('status', 'api-key-updated');
+
     }
 }

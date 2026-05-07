@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             EvaluationPatternImportSeeder::class,
             AppSeeder::class,
+            QuestionnaireSeeder::class,
         ]);
     }
 }

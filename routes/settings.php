@@ -21,5 +21,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
+    Route::inertia('settings/ai-api', 'settings/apiSettings')->name('profile.ai_api_edit');
+
+    Route::put('settings/ai-api', [ProfileController::class, 'update_ai_api'])->name('profile.update_ai_api');
+
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
+
 });

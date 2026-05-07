@@ -58,6 +58,7 @@ export type StudyCase = {
     currentLayerFromPivot?: string | null;
 
     tasks?: Task[] | null;
+    questionnaires?: Questionnaire[] | null;
 
     completed_at: string | null;
     created_at: string;
@@ -74,3 +75,28 @@ export type Task = {
     stress_level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; //Critical Operator (Under constant stress)
     cost_of_error: 'low' | 'medium' | 'critical';
 };
+
+export type Questionnaire = {
+    id: number;
+    title: string | null;
+    status: 'draft' | 'active' | 'closed';
+    description: string | null;
+    study_case_id: number;
+    created_by_id: number;
+    questions_count: number;
+    submissions_count: number;
+    link: string;
+    questions: Question[];
+    created_at: string;
+};
+
+export type Question = {
+    id: number;
+    question: string;
+    position: number;
+    pivot?: {
+        position: number;
+    };
+    //answer: string;
+}
+

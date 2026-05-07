@@ -31,7 +31,7 @@ return new class extends Migration
             $table->longText("remediation")->nullable();
             $table->longText("org_question")->nullable();
             $table->text("reference")->nullable();
-            $table->integer("number_of_violations")->default(0);
+            //$table->integer("number_of_violations")->default(0);
             $table->timestamps();
         });
     }

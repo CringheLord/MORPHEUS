@@ -91,7 +91,7 @@ export default function CreateTask({ open, onClose, studyCaseId, task,  }: Props
     }
 
 
-    const submit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    const submit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
 
         if (isEditMode && task) {

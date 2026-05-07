@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import AuditLayout from '@/layouts/audit-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import '@fontsource/material-symbols-outlined';
 import '@/lib/gsap';
 
 const appName = import.meta.env.VITE_APP_NAME || 'MORPHEUS';

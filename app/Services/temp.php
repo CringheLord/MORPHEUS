@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Models\Services;
 
-use OpenAI;
-use App\Models\Task;
-use App\Models\Finding;
+namespace App\Services;
+
 use App\Models\EvaluationPattern;
-use Illuminate\Support\Facades\Log;
+use App\Models\Finding;
+use App\Models\Task;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use OpenAI;
 
 class MorpheusAiService
 {
@@ -94,8 +95,8 @@ class MorpheusAiService
                 return $value ?? 'N/A';
             };
 
-            $trigger     = $formatValue($h->part_a['trigger'] ?? 'N/A');
-            $auditRule   = $formatValue($h->part_b['audit_rule'] ?? 'N/A');
+            $trigger = $formatValue($h->part_a['trigger'] ?? 'N/A');
+            $auditRule = $formatValue($h->part_b['audit_rule'] ?? 'N/A');
             $orgQuestion = $formatValue($h->part_b['org_question'] ?? 'N/A');
 
             $systemPrompt = <<<EOT
@@ -132,7 +133,7 @@ Restituisci questo ESATTO JSON:
   "findings": [
     {
       "artifact_id": "INSERISCI_SOLO_LA_STRINGA_ID_PULITA (Es: 69c3...)",
-      "visual_element_description": "Cosa c'è di sbagliato nella UI o nel flusso...",
+      "visual_element_description": "Cosa c'è di sbagliato nella UI o nel flusso...",,
       "internal_reasoning": "Spiegazione tecnica della violazione...",
       ""pragmatic_explanation": "Fornisci un Executive Summary spietatamente pragmatico (max 3 frasi) per il team tecnico. Non usare elenchi puntati. Segui rigorosamente questa struttura: 1) IL BUG: cosa c'è di sbagliato nell'interfaccia. 2) L'IMPATTO: quale blocco o frustrazione causa all'utente. 3) LA SOLUZIONE: l'azione tecnica o di design esatta per risolverlo. Esempio di tono e lunghezza: 'Il bottone X non ha uno stato attivo. L'utente, non ricevendo feedback visivo, rischia di cliccare due volte inviando dati doppi. Aggiungi uno spinner di caricamento e disabilita il tasto dopo il primo click.'",
       "x": 50, "y": 50, "width": 10, "height": 5,
@@ -164,10 +165,10 @@ EOT;
                         $cleanArtId = trim(str_replace(['RIFERIMENTO_ID_IMMAGINE:', 'ID_IMMAGINE:', 'ID:', 'Step'], '', $rawArtId));
 
                         Finding::create([
-                            'project_id'  => $projectIdStr,
-                            'task_id'     => $taskIdStr,
+                            'project_id' => $projectIdStr,
+                            'task_id' => $taskIdStr,
                             'artifact_id' => $cleanArtId,
-                            'heuristic_id'=> $h->h_id,
+                            'heuristic_id' => $h->h_id,
                             'coordinates' => [
                                 'x' => $findingData['x'] ?? 50,
                                 'y' => $findingData['y'] ?? 50,

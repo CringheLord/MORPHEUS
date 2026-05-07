@@ -30,6 +30,7 @@ class AppSeeder extends Seeder
             $studyCase->users()->attach(
                 $collaborators->random(rand(0, 2))->pluck('id')->all()
             );
+
         }
     }
 }
