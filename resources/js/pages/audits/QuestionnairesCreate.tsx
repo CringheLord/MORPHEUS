@@ -1,19 +1,19 @@
+
 import { useForm } from '@inertiajs/react';
 import { Label } from '@radix-ui/react-label';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Search, Save } from 'lucide-react';
 import { useRef } from 'react';
 
 import React from 'react';
 
+import QuestionCard from '@/components/studyCase/orgLayer/QuestionCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 
 
-import type { Question, Questionnaire } from '@/types';;
-
-
-
+import type { Question, Questionnaire } from '@/types';
 
 type QuestionnaireForm = {
     title: string;
@@ -21,13 +21,15 @@ type QuestionnaireForm = {
     status: 'draft' | 'active' | 'closed';
 
     questions: Question[];
-}
+};
+
 type Props = {
     questionnaire: Questionnaire;
+    questions: Question[];
 }
 
 
-const QuestionnairesCreate = ({ questionnaire }: Props) => {
+const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
     const submitRef = useRef<HTMLButtonElement>(null)
 
     function submitClick() {
@@ -42,11 +44,44 @@ const QuestionnairesCreate = ({ questionnaire }: Props) => {
         status: questionnaire.status ?? 'draft',
         questions: (questionnaire.questions ?? []).map((question, index) => ({
             id: question.id,
-            question: question.question ?? 'Insert your question here',
+            title: question.title,
+            question: question.question,
+            type: question.type,
 
             position: question.pivot?.position ?? index + 1,
         })),
     });
+
+    const selectQuestionId = React.useMemo(() => {
+        return new Set(form.data.questions.map((question) => question.id));
+    }, [form.data.questions]);
+
+    const toggleQuestion = (question: Question) => {
+        const isAlreadySelected = selectQuestionId.has(question.id);
+
+        if (isAlreadySelected) {
+            const updateQuestions = form.data.questions
+                .filter((q) => q.id !== question.id)
+                .map((q, index) => ({
+                    ...q,
+                    position: index + 1,
+                }));
+            form.setData('questions', updateQuestions);
+
+            return;
+        }
+
+        form.setData('questions', [
+            ...form.data.questions,
+            {
+                id: question.id,
+                title: question.title,
+                question: question.question,
+                type: question.type,
+                position: form.data.questions.length + 1,
+            },
+        ]);
+    };
 
     const submit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
@@ -55,13 +90,60 @@ const QuestionnairesCreate = ({ questionnaire }: Props) => {
         });
     }
 
+    const upOrder = (question: Question) => {
+        const currentIndex = form.data.questions.findIndex(
+            (q) => q.id === question.id,
+        );
+
+        if (currentIndex <= 0) {
+            return;
+        }
+
+        const updatedQuestions = [...form.data.questions];
+
+        const previousQuestion = updatedQuestions[currentIndex - 1];
+        updatedQuestions[currentIndex - 1] = updatedQuestions[currentIndex];
+        updatedQuestions[currentIndex] = previousQuestion;
+
+        form.setData('questions', normalizePositions(updatedQuestions));
+    };
+
+    const normalizePositions = (questions: Question[]) => {
+        return questions.map((question, index) => ({
+            ...question,
+            position: index + 1,
+        }));
+    };
+
+    const downOrder = (question: Question) => {
+        const currentIndex = form.data.questions.findIndex(
+            (q) => q.id === question.id,
+        );
+
+        if (
+            currentIndex === -1 ||
+            currentIndex >= form.data.questions.length - 1
+        ) {
+            return;
+        }
+
+        const updatedQuestions = [...form.data.questions];
+
+        const nextQuestion = updatedQuestions[currentIndex + 1];
+        updatedQuestions[currentIndex + 1] = updatedQuestions[currentIndex];
+        updatedQuestions[currentIndex] = nextQuestion;
+
+        form.setData('questions', normalizePositions(updatedQuestions));
+    };
+
+    console.log(form.data)
 
     return (
         <div>
             <div className="flex h-[calc(100vh)] overflow-hidden">
                 <main className="flex flex-1 flex-col overflow-hidden">
                     <div className="flex flex-1 overflow-hidden">
-                        <div className="border-border hide-scrollbar flex w-80 flex-col overflow-y-auto border-r bg-card-high">
+                        <div className="hide-scrollbar flex w-80 flex-col overflow-y-auto border-r border-border bg-card-high">
                             <div className="space-y-8 p-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold tracking-wider uppercase">
@@ -125,16 +207,16 @@ const QuestionnairesCreate = ({ questionnaire }: Props) => {
                                         Categories
                                     </label>
                                     <div className="flex flex-wrap gap-2">
-                                        <button className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white">
+                                        <button className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
                                             All
                                         </button>
-                                        <button className="border-outline-variant rounded-full border bg-white px-3 py-1.5 text-xs font-semibold transition-colors hover:border-primary">
+                                        <button className="border-outline-variant rounded-full border bg-card-highest px-3 py-1.5 text-xs font-semibold transition-colors hover:border-primary">
                                             Training
                                         </button>
-                                        <button className="border-outline-variant rounded-full border bg-white px-3 py-1.5 text-xs font-semibold transition-colors hover:border-primary">
+                                        <button className="border-outline-variant rounded-full border bg-card-highest px-3 py-1.5 text-xs font-semibold transition-colors hover:border-primary">
                                             Procedures
                                         </button>
-                                        <button className="border-outline-variant rounded-full border bg-white px-3 py-1.5 text-xs font-semibold transition-colors hover:border-primary">
+                                        <button className="border-outline-variant rounded-full border bg-card-highest px-3 py-1.5 text-xs font-semibold transition-colors hover:border-primary">
                                             Hardware
                                         </button>
                                     </div>
@@ -232,7 +314,9 @@ const QuestionnairesCreate = ({ questionnaire }: Props) => {
                                                 <textarea
                                                     className="border-outline-variant w-full rounded-xl border bg-surface-container-low p-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                                     placeholder="Describe the intent of this investigation..."
-                                                    value={form.data.description}
+                                                    value={
+                                                        form.data.description
+                                                    }
                                                     onChange={(e) =>
                                                         form.setData(
                                                             'description',
@@ -240,7 +324,11 @@ const QuestionnairesCreate = ({ questionnaire }: Props) => {
                                                         )
                                                     }
                                                 ></textarea>
-                                                <button ref={submitRef} type="submit" className="hidden"></button>
+                                                <button
+                                                    ref={submitRef}
+                                                    type="submit"
+                                                    className="hidden"
+                                                ></button>
                                             </div>
                                         </div>
                                     </form>
@@ -249,161 +337,22 @@ const QuestionnairesCreate = ({ questionnaire }: Props) => {
                                     <h3 className="text-outline text-sm font-bold tracking-widest uppercase">
                                         Available Questions (42)
                                     </h3>
-                                    <div className="group relative flex gap-6 rounded-2xl border-2 border-border bg-card p-6 shadow-md ring-4 ring-secondary transition-all">
-                                        <div className="flex flex-col items-center">
-                                            <div className="border-primary-container flex h-6 w-6 items-center justify-center rounded border-2 bg-primary">
-                                                <span className="material-symbols-outlined text-lg font-bold text-card-foreground">
-                                                    check
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 space-y-4">
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <h4 className="text-on-surface text-lg font-bold">
-                                                        Resource Adequacy under
-                                                        Deadline
-                                                    </h4>
-                                                    <p className="text-on-surface-variant mt-1 italic">
-                                                        "Do you feel that the
-                                                        resources provided are
-                                                        sufficient when project
-                                                        deadlines are tightened
-                                                        unexpectedly?"
-                                                    </p>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <span className="bg-tertiary-fixed text-on-tertiary-fixed rounded px-2 py-1 text-[10px] font-black uppercase">
-                                                        Time Pressure
-                                                    </span>
-                                                    <span className="bg-secondary-fixed text-on-secondary-fixed rounded px-2 py-1 text-[10px] font-black uppercase">
-                                                        Yes/No
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="bg-error-container/20 border-error-container/30 flex gap-3 rounded-xl border p-4">
-                                                <span className="material-symbols-outlined text-error">
-                                                    warning
-                                                </span>
-                                                <div>
-                                                    <p className="text-on-error-container text-xs font-bold">
-                                                        Risk Explanation
-                                                    </p>
-                                                    <p className="text-on-error-container/80 text-xs">
-                                                        Inadequate resources
-                                                        during high-pressure
-                                                        periods leads to a 40%
-                                                        increase in procedural
-                                                        violations and mental
-                                                        fatigue.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="group relative flex cursor-pointer gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/50">
-                                        <div className="flex flex-col items-center">
-                                            <div className="border-outline-variant h-6 w-6 rounded border-2 bg-card"></div>
-                                        </div>
-                                        <div className="flex-1 space-y-4">
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <h4 className="text-on-surface text-lg font-bold">
-                                                        Standard Operating
-                                                        Procedure Clarity
-                                                    </h4>
-                                                    <p className="text-on-surface-variant mt-1 italic">
-                                                        "Are the SOPs for
-                                                        emergency shutdowns
-                                                        easily accessible and
-                                                        understandable in
-                                                        high-stress
-                                                        environments?"
-                                                    </p>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <span className="text-on-surface-variant rounded bg-surface-container-high px-2 py-1 text-[10px] font-black uppercase">
-                                                        Procedures
-                                                    </span>
-                                                    <span className="bg-secondary-fixed text-on-secondary-fixed rounded px-2 py-1 text-[10px] font-black uppercase">
-                                                        Yes/No
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="bg-surface-container-lowest border-outline-variant flex gap-3 rounded-xl border p-4">
-                                                <span className="material-symbols-outlined text-outline">
-                                                    info
-                                                </span>
-                                                <div>
-                                                    <p className="text-on-surface text-xs font-bold">
-                                                        Risk Explanation
-                                                    </p>
-                                                    <p className="text-on-surface-variant text-xs">
-                                                        Ambiguous procedures are
-                                                        the primary catalyst for
-                                                        decision-making
-                                                        paralysis during
-                                                        critical failures.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="group relative flex gap-6 rounded-2xl border-2 border-border bg-card p-6 shadow-md ring-4 ring-secondary transition-all">
-                                        <div className="flex flex-col items-center">
-                                            <div className="border-primary-container flex h-6 w-6 items-center justify-center rounded border-2 bg-primary">
-                                                <span className="material-symbols-outlined text-lg font-bold text-white">
-                                                    check
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 space-y-4">
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <h4 className="text-on-surface text-lg font-bold">
-                                                        Pre-task Fatigue
-                                                        Assessment
-                                                    </h4>
-                                                    <p className="text-on-surface-variant mt-1 italic">
-                                                        "Rate your level of
-                                                        alertness prior to
-                                                        starting high-risk
-                                                        maintenance tasks."
-                                                    </p>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <span className="bg-tertiary-fixed text-on-tertiary-fixed rounded px-2 py-1 text-[10px] font-black uppercase">
-                                                        Fatigue
-                                                    </span>
-                                                    <span className="bg-secondary-fixed text-on-secondary-fixed rounded px-2 py-1 text-[10px] font-black uppercase">
-                                                        Likert
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="bg-error-container/20 border-error-container/30 flex gap-3 rounded-xl border p-4">
-                                                <span className="material-symbols-outlined text-error">
-                                                    bedtime
-                                                </span>
-                                                <div>
-                                                    <p className="text-on-error-container text-xs font-bold">
-                                                        Risk Explanation
-                                                    </p>
-                                                    <p className="text-on-error-container/80 text-xs">
-                                                        Self-reported high
-                                                        fatigue levels correlate
-                                                        strongly with a
-                                                        reduction in hazard
-                                                        perception and slowed
-                                                        reaction times.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {questions?.map((question) => (
+                                        <QuestionCard
+                                            key={question.id}
+                                            question={question}
+                                            isSelected={selectQuestionId.has(
+                                                question.id,
+                                            )}
+                                            onToggle={() =>
+                                                toggleQuestion(question)
+                                            }
+                                        />
+                                    ))}
                                 </div>
                             </div>
                         </div>
-                        <div className="border-border flex w-96 flex-col border-l bg-card-high">
+                        <div className="flex w-96 flex-col border-l border-border bg-card-high">
                             <div className="border-outline-variant border-b p-6">
                                 <h2 className="font-display text-on-surface text-xl font-extrabold">
                                     Questionnaire Summary
@@ -411,7 +360,7 @@ const QuestionnairesCreate = ({ questionnaire }: Props) => {
                                 <div className="bg-primary-container/5 border-primary-container/10 mt-4 flex items-center justify-between rounded-xl border p-4">
                                     <div>
                                         <span className="block text-3xl font-black text-primary">
-                                            12
+                                            {form.data.questions.length}{' '}
                                         </span>
                                         <span className="text-outline text-xs font-bold uppercase">
                                             Selected Items
@@ -426,55 +375,44 @@ const QuestionnairesCreate = ({ questionnaire }: Props) => {
                                 <label className="text-outline text-[10px] font-black tracking-widest uppercase">
                                     Added Questions
                                 </label>
-                                <div className="space-y-3">
-                                    <div className="group flex items-start gap-3">
-                                        <span className="material-symbols-outlined mt-1 text-sm text-primary">
-                                            drag_handle
-                                        </span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-on-surface truncate text-sm font-bold">
-                                                Resource Adequacy under Deadline
-                                            </p>
-                                            <p className="text-outline text-[10px]">
-                                                Human Factor: Time Pressure
-                                            </p>
+                                <div className="mt-4 space-y-3">
+                                    {form.data.questions.map((question) => (
+                                        <div key={question.id} className="group flex items-center gap-3">
+                                            <div className="flex flex-col items-center">
+                                                <Button
+                                                    onClick={() => upOrder(question)}
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-4"
+                                                >
+                                                    <ChevronUp className="size-4 text-primary" />
+                                                </Button>
+                                                <Button
+                                                    onClick={() => downOrder(question)}
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-4"
+                                                >
+                                                    <ChevronDown className="size-4 text-primary" />
+                                                </Button>
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-on-surface truncate text-sm font-bold">
+                                                    {question.title}
+                                                </p>
+                                                <p className="text-outline text-[10px]">
+                                                    Human Factor: Time Pressure
+                                                </p>
+                                            </div>
+                                            <Button
+                                                variant={'ghost'}
+                                                size={'icon'}
+                                                className="material-symbols-outlined text-lg text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                                            >
+                                                close
+                                            </Button>
                                         </div>
-                                        <button className="material-symbols-outlined text-error text-lg opacity-0 transition-opacity group-hover:opacity-100">
-                                            close
-                                        </button>
-                                    </div>
-                                    <div className="group flex items-start gap-3">
-                                        <span className="material-symbols-outlined mt-1 text-sm text-primary">
-                                            drag_handle
-                                        </span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-on-surface truncate text-sm font-bold">
-                                                Pre-task Fatigue Assessment
-                                            </p>
-                                            <p className="text-outline text-[10px]">
-                                                Human Factor: Fatigue
-                                            </p>
-                                        </div>
-                                        <button className="material-symbols-outlined text-error text-lg opacity-0 transition-opacity group-hover:opacity-100">
-                                            close
-                                        </button>
-                                    </div>
-                                    <div className="group flex items-start gap-3">
-                                        <span className="material-symbols-outlined mt-1 text-sm text-primary">
-                                            drag_handle
-                                        </span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-on-surface truncate text-sm font-bold">
-                                                Onboarding Satisfaction
-                                            </p>
-                                            <p className="text-outline text-[10px]">
-                                                Human Factor: Training
-                                            </p>
-                                        </div>
-                                        <button className="material-symbols-outlined text-error text-lg opacity-0 transition-opacity group-hover:opacity-100">
-                                            close
-                                        </button>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
                             <div className="border-outline-variant bg-surface-container-lowest flex flex-col items-center space-y-4 space-x-2 border-t p-6">

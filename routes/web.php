@@ -36,5 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tasks/{task}/audits', [TaskController::class, 'inspect'])->name('tasks.inspect');
     Route::post('tasks/{task}/artifacts', [ArtifactController::class, 'store'])->name('tasks.audits.artifacts.store');
 });
-
+//Guest questionnaire page
+Route::get('questionnaires/{questionnaires}/submit/get', [QuestionnairesController::class, 'getSubmit'])->name('questionnaires.get');
+Route::post('questionnaires/{questionnaires}/submit', [QuestionnairesController::class, 'submit'])->name('questionnaires.submit');
 require __DIR__.'/settings.php';

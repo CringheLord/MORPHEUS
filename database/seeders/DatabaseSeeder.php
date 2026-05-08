@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             EvaluationPatternImportSeeder::class,
             AppSeeder::class,
             QuestionnaireSeeder::class,
+            QuestionSeeder::class,
         ]);
     }
 }

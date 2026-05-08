@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import {wayfinder} from '@laravel/vite-plugin-wayfinder';
+
 
 import {
     ClipboardList,
@@ -18,7 +18,6 @@ import { show } from '@/actions/App/Http/Controllers/QuestionnairesController';
 import { Button } from '@/components/ui/button';
 
 import type { Questionnaire } from '@/types';
-import studyCases from '@/routes/study-cases';
 
 
 
@@ -95,6 +94,7 @@ const DynamicStatus = ({ status, variant = 'card' }: DynamicStatusProps) => {
 
 const QuestionnairesIndex = ({ questionnaires, gridView }: Props) => {
     console.log(questionnaires);
+
     const gridScrollRef = useRef<HTMLDivElement>(null);
 
     const handleGridWheel = (e: React.WheelEvent<HTMLDivElement>) => {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Question;
 use App\Models\Questionnaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,9 +29,12 @@ class QuestionnairesController extends Controller
         $questionnaire->load('questions');
         $studyCase = $questionnaire->studyCase;
 
+        $questions = Question::all();
+
         return Inertia::render('audits/QuestionnairesCreate', [
             'questionnaire' => $questionnaire,
             'studyCase' => $studyCase,
+            'questions' => $questions,
         ]);
     }
 
@@ -40,15 +44,49 @@ class QuestionnairesController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['string'],
             'status' => ['required', 'in:draft,active,closed'],
+
+            'questions' => ['array'],
+            'questions.*.id' => ['required', 'integer', 'exists:questions,id'],
+            'questions.*.position' => ['required', 'integer', 'min:1'],
         ]);
 
         $questionnaire = Questionnaire::findOrFail($questionnaireId);
-        $questionnaire->title = $validated['title'];
-        $questionnaire->description = $validated['description'];
-        $questionnaire->status = $validated['status'];
+        $questionnaire->update([
+           'title' => $validated['title'],
+           'description' => $validated['description'],
+           'status' => $validated['status'],
+        ]);
+
+
+        $questionsToSync = collect($validated['questions'] ?? [])
+            ->sortBy('position')
+            ->values()
+            ->mapWithKeys(function ( $question, $index ) {
+                return [
+                    $question['id'] => [
+                        'position' => $index + 1,
+                    ],
+                ];
+            })
+            ->all();
+        $questionnaire->questions()->sync($questionsToSync);
 
         $questionnaire->save();
 
         return back();
+    }
+
+    public function getSubmit($questionnaireId)
+    {
+        $questionnaire = Questionnaire::findOrFail($questionnaireId);
+        $questionnaire->load('questions');
+
+        return Inertia::render('guest/QuestionnaireSubmit', [
+            'questionnaire' => $questionnaire,
+        ]);
+    }
+
+    public function submit($questionnaireId, Request $request) {
+
     }
 }

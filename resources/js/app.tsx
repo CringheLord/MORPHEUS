@@ -5,7 +5,9 @@ import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuditLayout from '@/layouts/audit-layout';
 import AuthLayout from '@/layouts/auth-layout';
+import GuestLayout from '@/layouts/guest-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+
 import '@fontsource/material-symbols-outlined';
 import '@/lib/gsap';
 
@@ -23,6 +25,8 @@ createInertiaApp({
                 return [AppLayout, SettingsLayout];
             case name.startsWith('audits/'):
                 return AuditLayout;
+            case name.startsWith('guest/'):
+                return GuestLayout;
             default:
                 return AppLayout;
         }

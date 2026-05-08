@@ -10,13 +10,14 @@ class Questionnaire extends Model
     use HasFactory;
 
    protected $fillable = [
-        'title',
-        'description',
-        'study_case_id',
-        'created_by_id',
-        'questions_number',
-        'n_answered',
-    ];
+       'title',
+       'description',
+       'study_case_id',
+       'created_by_id',
+       'questions_number',
+       'n_answered',
+       'status',
+   ];
 
     public function studyCase()
     {

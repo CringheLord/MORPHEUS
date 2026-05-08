@@ -92,7 +92,9 @@ export type Questionnaire = {
 
 export type Question = {
     id: number;
+    title: string;
     question: string;
+    type: string;
     position: number;
     pivot?: {
         position: number;
