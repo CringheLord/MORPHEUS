@@ -11,6 +11,8 @@ class Answer extends Model
         'question_id',
         'answer',
         'score',
+        'submission_id',
+        'text',
     ];
     public function question() {
         return $this->belongsTo(Question::class);

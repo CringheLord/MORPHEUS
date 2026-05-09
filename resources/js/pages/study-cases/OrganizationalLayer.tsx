@@ -123,12 +123,16 @@ const OrganizationalLayer = ({ questionnaires, studyCase }: Props) => {
                     </div>
                 </div>
 
-                <Link method={"post"} href={store({studyCase: studyCase.id})}>
-                    <Button size="lg">
+                <Button asChild size="lg">
+                    <Link
+                        method="post"
+                        href={`/study-cases/${studyCase.id}/questionnaires/store`}
+                        preserveScroll
+                    >
                         <FilePlus className="size-6" />
                         Create Questionnaire
-                    </Button>
-                </Link>
+                    </Link>
+                </Button>
             </section>
 
             <QuestionnairesIndex

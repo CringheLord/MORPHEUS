@@ -1,5 +1,5 @@
 
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { Label } from '@radix-ui/react-label';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Search, Save } from 'lucide-react';
@@ -7,7 +7,20 @@ import { useRef } from 'react';
 
 import React from 'react';
 
+import { share } from '@/actions/App/Http/Controllers/QuestionnairesController';
+
 import QuestionCard from '@/components/studyCase/orgLayer/QuestionCard';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -35,6 +48,18 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
     function submitClick() {
         submitRef.current?.click();
     }
+
+    const shareQuestionnaire = () => {
+        const url = `questionnaires/${questionnaire.id}/submit/get`;
+
+        router.put(share(questionnaire.id),
+        {
+            url:url,
+        },
+        {
+            preserveScroll: true,
+        });
+    };
 
     const form = useForm<QuestionnaireForm>({
         title: questionnaire.title ?? '',
@@ -286,26 +311,12 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
                                                 <Label className="text-on-surface text-sm font-bold">
                                                     Initial Status
                                                 </Label>
-                                                <select
-                                                    value={form.data.status}
-                                                    onChange={(e) =>
-                                                        form.setData(
-                                                            'status',
-                                                            e.target.value,
-                                                        )
-                                                    }
+                                                <div
+
                                                     className="border-outline-variant w-full rounded-xl border bg-surface-container-low p-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                                 >
-                                                    <option value="draft">
-                                                        Draft
-                                                    </option>
-                                                    <option value="active">
-                                                        Active
-                                                    </option>
-                                                    <option value="closed">
-                                                        Closed
-                                                    </option>
-                                                </select>
+                                                    {questionnaire.status}
+                                                </div>
                                             </div>
                                             <div className="space-y-2 md:col-span-3">
                                                 <Label className="text-on-surface text-sm font-bold">
@@ -426,12 +437,40 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
                                     <Save className="ml-1 size-5" />
                                     Save
                                 </Button>
-                                <Button size={'lg'} className="w-full">
-                                    <span>Create Questionnaire</span>
-                                    <span className="material-symbols-outlined">
-                                        auto_awesome
-                                    </span>
-                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button size="lg" className="w-full">
+                                            <span>Share Questionnaire</span>
+                                            <span className="material-symbols-outlined">
+                                                auto_awesome
+                                            </span>
+                                        </Button>
+                                    </AlertDialogTrigger>
+
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                                Share this questionnaire?
+                                            </AlertDialogTitle>
+
+                                            <AlertDialogDescription>
+                                                Once shared, this questionnaire will be locked. You will no longer
+                                                be able to modify its title, description, status, or selected questions.
+                                                This preserves the consistency of the answers collected from workers.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>
+                                                Cancel
+                                            </AlertDialogCancel>
+
+                                            <AlertDialogAction onClick={shareQuestionnaire}>
+                                                Yes, share and lock it
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                         </div>
                     </div>

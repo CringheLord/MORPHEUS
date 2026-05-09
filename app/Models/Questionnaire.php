@@ -9,7 +9,10 @@ class Questionnaire extends Model
 {
     use HasFactory;
 
-   protected $fillable = [
+    /**
+     * @var \Illuminate\Support\HigherOrderCollectionProxy|mixed
+     */
+    protected $fillable = [
        'title',
        'description',
        'study_case_id',

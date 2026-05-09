@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('status')->default('draft');
             $table->foreignId('created_by_id')->constrained('users')->cascadeOnDelete();
             $table->string('link')->nullable();
+            $table->boolean('shared')->default(false);
             //$table->integer('questions_number')->default(0);
             //$table->integer('n_answered')->default(0);
 
