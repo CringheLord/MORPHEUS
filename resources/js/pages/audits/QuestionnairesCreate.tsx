@@ -50,7 +50,7 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
     }
 
     const shareQuestionnaire = () => {
-        const url = `questionnaires/${questionnaire.id}/submit/get`;
+        const url = `${window.location.origin}/questionnaires/${questionnaire.id}/submit/get`;
 
         router.put(share(questionnaire.id),
         {

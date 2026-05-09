@@ -1,4 +1,5 @@
 import type { User } from './auth';
+import { number } from 'framer-motion';
 
 export type EvaluationPattern = {
     id: number;
@@ -87,6 +88,7 @@ export type Questionnaire = {
     submissions_count: number;
     link: string;
     questions: Question[];
+    submissions: Submission[];
     created_at: string;
 };
 
@@ -101,4 +103,20 @@ export type Question = {
     };
     //answer: string;
 }
+
+export type Submission = {
+    id: number;
+    answers: Answer[];
+    questionnaire_id: number;
+    time_spent: number | null;
+}
+
+export type Answer = {
+    id: number;
+    answer: boolean | null;
+    score: number | null;
+    text: string | null;
+    question_id: number;
+}
+
 

@@ -160,9 +160,10 @@ class QuestionnairesController extends Controller
     public function results($questionnaireId)
     {
         $questionnaire = Questionnaire::findOrFail($questionnaireId);
-        $questionnaire->load('submissions.answers');
+        $questionnaire->load('submissions.answers', 'questions')->withCount('submissions');
 
-        return Inertia::render('study-cases/QuestionnaireResult'
-        );
+        return Inertia::render('study-cases/QuestionnaireResult', [
+            'questionnaire' => $questionnaire,
+        ]);
     }
 }
