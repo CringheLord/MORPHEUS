@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 
 
 import {
@@ -11,6 +11,7 @@ import {
     SquarePen,
     Users,
 } from 'lucide-react';
+
 import React from 'react';
 import { useRef } from 'react';
 import { show } from '@/actions/App/Http/Controllers/QuestionnairesController';
@@ -18,6 +19,7 @@ import { show } from '@/actions/App/Http/Controllers/QuestionnairesController';
 import { Button } from '@/components/ui/button';
 
 import type { Questionnaire } from '@/types';
+import { toast } from 'sonner';
 
 
 
@@ -93,7 +95,14 @@ const DynamicStatus = ({ status, variant = 'card' }: DynamicStatusProps) => {
 };
 
 const QuestionnairesIndex = ({ questionnaires, gridView }: Props) => {
-    console.log(questionnaires);
+
+    async function copyTocClipboard(url: string) {
+        if ( ! url) {
+            return;
+        }
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copied to clipboard');
+    }
 
     const gridScrollRef = useRef<HTMLDivElement>(null);
 
@@ -158,7 +167,7 @@ const QuestionnairesIndex = ({ questionnaires, gridView }: Props) => {
                                         <div
                                             key={questionnaire.id}
                                             data-flip-id={`questionnaire-${questionnaire.id}`}
-                                            className="questionnaire-flip-item questionnaire-grid-item border-outline-variant/30 group flex h-100 w-[340px] shrink-0 flex-col overflow-hidden rounded-2xl border bg-card-high dark:bg-card shadow-md transition-all hover:shadow-xl sm:w-[380px]"
+                                            className="questionnaire-flip-item questionnaire-grid-item border-outline-variant/30 group flex h-100 w-[340px] shrink-0 flex-col overflow-hidden rounded-2xl border bg-card-high shadow-md transition-all hover:shadow-xl sm:w-[380px] dark:bg-card"
                                         >
                                             <DynamicStatus
                                                 status={safeStatus}
@@ -196,7 +205,14 @@ const QuestionnairesIndex = ({ questionnaires, gridView }: Props) => {
 
                                                 <div className="mt-auto space-y-4">
                                                     {questionnaire.link ? (
-                                                        <div className="group/link flex cursor-pointer items-center justify-between rounded-xl bg-surface-container-low p-3 hover:bg-primary/10">
+                                                        <div
+                                                            onClick={() =>
+                                                                copyTocClipboard(
+                                                                    questionnaire.link,
+                                                                )
+                                                            }
+                                                            className="group/link flex cursor-pointer items-center justify-between rounded-xl bg-surface-container-low p-3 hover:bg-primary/10"
+                                                        >
                                                             <span className="text-outline mr-4 truncate font-mono text-[10px]">
                                                                 {
                                                                     questionnaire.link
@@ -221,19 +237,40 @@ const QuestionnairesIndex = ({ questionnaires, gridView }: Props) => {
                                                             'active' ||
                                                         questionnaire.status ===
                                                             'closed' ? (
-                                                            <Button
-                                                                size="lg"
+                                                            <Link
                                                                 className="w-full"
+                                                                method={'get'}
+                                                                href={
+                                                                    '/questionnaires/' +
+                                                                    questionnaire.id +
+                                                                    '/results'
+                                                                }
                                                             >
-                                                                Results
-                                                            </Button>
+                                                                <Button
+                                                                    size="lg"
+                                                                    className="w-full"
+                                                                >
+                                                                    Results
+                                                                </Button>
+                                                            </Link>
                                                         ) : (
-                                                            <Button
-                                                                variant="secondary"
-                                                                className="w-full"
+                                                            <Link
+                                                                method={'get'}
+                                                                href={show({
+                                                                    studyCase:
+                                                                        questionnaire.study_case_id,
+                                                                    questionnaire:
+                                                                        questionnaire.id,
+                                                                })}
                                                             >
-                                                                Resume Editing
-                                                            </Button>
+                                                                <Button
+                                                                    variant="secondary"
+                                                                    className="w-full"
+                                                                >
+                                                                    Resume
+                                                                    Editing
+                                                                </Button>
+                                                            </Link>
                                                         )}
 
                                                         <button className="text-outline border-outline-variant/30 rounded-lg border p-2 transition-colors hover:bg-surface-container">
@@ -378,6 +415,11 @@ const QuestionnairesIndex = ({ questionnaires, gridView }: Props) => {
                                                         <div className="flex items-center justify-end gap-2">
                                                             <Button
                                                                 variant="outline"
+                                                                onClick={() =>
+                                                                    copyTocClipboard(
+                                                                        questionnaire.link,
+                                                                    )
+                                                                }
                                                                 className="border-secondary"
                                                                 title="Share Link"
                                                             >

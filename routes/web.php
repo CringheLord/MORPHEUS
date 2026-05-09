@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('tasks/{task}/artifacts', [ArtifactController::class, 'store'])->name('tasks.audits.artifacts.store');
 
     Route::put('questionnaires/{questionnaire}/share', [QuestionnairesController::class, 'share'])->name('questionnaires.share');
+    Route::get('questionnaires/{questionnaire}/results', [QuestionnairesController::class, 'results'])->name('questionnaires.results');
 });
 //Guest questionnaire page
 Route::middleware(SharedQuestionnaire::class)->group(function () {

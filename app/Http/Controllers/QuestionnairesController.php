@@ -156,4 +156,13 @@ class QuestionnairesController extends Controller
 
         return redirect()->back();
     }
+
+    public function results($questionnaireId)
+    {
+        $questionnaire = Questionnaire::findOrFail($questionnaireId);
+        $questionnaire->load('submissions.answers');
+
+        return Inertia::render('study-cases/QuestionnaireResult'
+        );
+    }
 }
