@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type { Questionnaire, Submission } from '@/types';
+import { ArrowLeftFromLine } from 'lucide-react';
 
 type Props = {
     questionnaire: Questionnaire;
@@ -40,6 +41,19 @@ const QuestionnaireResult = ({ questionnaire }: Props) => {
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center">
+            <nav aria-label="Breadcrumb">
+                <ol className="flex items-center space-x-2 text-primary absolute top-5 left-15">
+                    <li>
+                        <a
+                            className="group flex items-center gap-1 transition-colors hover:text-secondary"
+                            href="/study-cases"
+                        >
+                            <ArrowLeftFromLine className="size-6 text-primary transition-colors transition-transform group-hover:-translate-x-1 group-hover:text-secondary" />
+                            Back to Study Cases
+                        </a>
+                    </li>
+                </ol>
+            </nav>
             <div className="bg-surface-container-lowest border-outline-variant/30 mt-4 mb-6 h-fit w-2/3 rounded-xl border border-t-8 border-t-primary p-8 shadow-sm">
                 <h2 className="text-on-surface mb-2 text-3xl font-black tracking-tight">
                     Q3 Cybersecurity Culture Assessment

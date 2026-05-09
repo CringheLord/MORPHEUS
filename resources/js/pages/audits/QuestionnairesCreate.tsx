@@ -1,7 +1,7 @@
 
 import { router, useForm } from '@inertiajs/react';
 import { Label } from '@radix-ui/react-label';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, ArrowLeftFromLine } from 'lucide-react';
 import { Search, Save } from 'lucide-react';
 import { useRef } from 'react';
 
@@ -170,6 +170,19 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
                     <div className="flex flex-1 overflow-hidden">
                         <div className="hide-scrollbar flex w-80 flex-col overflow-y-auto border-r border-border bg-card-high">
                             <div className="space-y-8 p-6">
+                                <nav aria-label="Breadcrumb">
+                                    <ol className="flex items-center space-x-2 text-primary">
+                                        <li>
+                                            <a
+                                                className="group flex items-center gap-1 transition-colors hover:text-secondary"
+                                                href="/study-cases"
+                                            >
+                                                <ArrowLeftFromLine className="size-6 text-primary transition-colors transition-transform group-hover:-translate-x-1 group-hover:text-secondary" />
+                                                Back to Study Cases
+                                            </a>
+                                        </li>
+                                    </ol>
+                                </nav>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold tracking-wider uppercase">
                                         Search Questions
@@ -311,10 +324,7 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
                                                 <Label className="text-on-surface text-sm font-bold">
                                                     Initial Status
                                                 </Label>
-                                                <div
-
-                                                    className="border-outline-variant w-full rounded-xl border bg-surface-container-low p-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                                >
+                                                <div className="border-outline-variant w-full rounded-xl border bg-surface-container-low p-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
                                                     {questionnaire.status}
                                                 </div>
                                             </div>
@@ -388,10 +398,15 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
                                 </label>
                                 <div className="mt-4 space-y-3">
                                     {form.data.questions.map((question) => (
-                                        <div key={question.id} className="group flex items-center gap-3">
+                                        <div
+                                            key={question.id}
+                                            className="group flex items-center gap-3"
+                                        >
                                             <div className="flex flex-col items-center">
                                                 <Button
-                                                    onClick={() => upOrder(question)}
+                                                    onClick={() =>
+                                                        upOrder(question)
+                                                    }
                                                     size="icon"
                                                     variant="ghost"
                                                     className="h-4"
@@ -399,7 +414,9 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
                                                     <ChevronUp className="size-4 text-primary" />
                                                 </Button>
                                                 <Button
-                                                    onClick={() => downOrder(question)}
+                                                    onClick={() =>
+                                                        downOrder(question)
+                                                    }
                                                     size="icon"
                                                     variant="ghost"
                                                     className="h-4"
@@ -454,9 +471,13 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
                                             </AlertDialogTitle>
 
                                             <AlertDialogDescription>
-                                                Once shared, this questionnaire will be locked. You will no longer
-                                                be able to modify its title, description, status, or selected questions.
-                                                This preserves the consistency of the answers collected from workers.
+                                                Once shared, this questionnaire
+                                                will be locked. You will no
+                                                longer be able to modify its
+                                                title, description, status, or
+                                                selected questions. This
+                                                preserves the consistency of the
+                                                answers collected from workers.
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
 
@@ -465,7 +486,9 @@ const QuestionnairesCreate = ({ questionnaire, questions }: Props) => {
                                                 Cancel
                                             </AlertDialogCancel>
 
-                                            <AlertDialogAction onClick={shareQuestionnaire}>
+                                            <AlertDialogAction
+                                                onClick={shareQuestionnaire}
+                                            >
                                                 Yes, share and lock it
                                             </AlertDialogAction>
                                         </AlertDialogFooter>
