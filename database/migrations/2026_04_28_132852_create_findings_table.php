@@ -16,9 +16,12 @@ return new class extends Migration
             $table->foreignId('study_case_id')->constrained()->cascadeOnDelete();
             $table->foreignId('artifact_id')->constrained()->cascadeOnDelete();
             $table->foreignId('evaluation_pattern_id')->constrained();
+            $table->text('visual_element_description');
+            $table->text('internal_reasoning');
             $table->text('pragmatic_explanation');
             $table->string('severity')->nullable();
             $table->text('executive_question');
+            $table->string('status')->default('pending');
 
             $table->timestamps();
         });

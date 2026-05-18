@@ -13,7 +13,8 @@ class Task extends Model
         'user_role',
         'user_intent',
         'stress_level',
-        'cost_of_error'
+        'cost_of_error',
+        'status'
     ];
 
     public function studyCase() {

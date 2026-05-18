@@ -12,8 +12,8 @@ Artisan::command('testChat', function () {
     while (true) {
         $prompt = text('Prompt:');
 
-        $response =  MorpheusAgent::make()
-            ->continue('2_conversation', as: $user)
+        $response =  \App\Ai\Agents\TestAgent::make()
+            ->continue('test1', as: $user)
             ->prompt(
                 $prompt,
                 provider: 'gemini',
