@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('artifacts', function (Blueprint $table) {
+        Schema::create('mitigations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('task_id')->constrained()->cascadeOnDelete();
-            $table->string('image_url')->nullable();
-            $table->string('file_path')->nullable();
-            $table->string('page_url')->nullable();
+            $table->string('title')->nullable();
+            $table->foreignId('finding_id')->constrained()->cascadeOnDelete();
+            $table->text('description');
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('artifacts');
+        Schema::dropIfExists('mitigations');
     }
 };

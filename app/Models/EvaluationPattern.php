@@ -34,4 +34,9 @@ class EvaluationPattern extends Model
         return $this->belongsToMany(UiTag::class, 'evaluation_pattern_ui_tag')
             ->withTimestamps();
     }
+
+    public function findings()
+    {
+        return $this->belongsToMany(Finding::class, 'evaluation_pattern_finding')->withPivot('description');
+    }
 }

@@ -23,4 +23,8 @@ class Task extends Model
     public function artifacts() {
         return $this->hasMany(Artifact::class);
     }
+
+    public function findings() {
+        return $this->hasMany(Finding::class);
+    }
 }

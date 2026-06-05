@@ -128,6 +128,15 @@ class StudyCaseController extends Controller
         abort_unless($allowed, 403);
     }
 
+    public function destroy(StudyCase $studyCase)
+    {
+        $studyCase->delete();
+
+        return redirect()
+            ->route('study-cases.index')
+            ->with('success', 'Study case deleted.');
+    }
+
    /* public function update(StudyCase $studyCase)
     {
         return Inertia::render('study-cases/', [

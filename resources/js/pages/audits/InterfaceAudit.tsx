@@ -1,20 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 
-import {
-    Bot,
-    Bolt,
-    ChevronsLeft,
-    Info,
-    Layers,
-    Pencil,
-    Send,
-    Settings2,
-    TriangleAlert,
-    ZoomIn,
-    ZoomOut,
-    CopyPlus,
-} from 'lucide-react';
+import { Bot, Bolt, ChevronsLeft, Send, CopyPlus, Info, X, ChevronsDown } from 'lucide-react';
 
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
@@ -25,15 +12,17 @@ import React from 'react';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 import AuditActionMenu from '@/components/audits/AuditActionMenu';
+import ConfigureAuditDialog from '@/components/audits/ConfigureAuditDialog';
 import { Button } from '@/components/ui/button';
 
-import type { StudyCase, Task, EvaluationPattern } from '@/types';
+import type { StudyCase, Task, EvaluationPattern, Finding } from '@/types';
 
 
 type Props = {
     evaluationPattern: EvaluationPattern [];
     studyCase: StudyCase;
     task: Task;
+    findings: Finding [];
 };
 
 
@@ -44,130 +33,59 @@ type Props = {
 
 const InterfaceAudit = ({ studyCase, task, evaluationPattern }: Props) => {
 
-    const [isUploadingPDF, setIsUploadingPDF] = useState(false);
+    const findings = task.findings;
+
+    const [isConfigureAuditOpen, setIsConfigureAuditOpen] = useState(false);
+
+    const [selectedEvaluationPattern, setSelectedEvaluationPattern] = useState<EvaluationPattern | null>(null);
+
+    const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
+
+    const findingRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
 
-    const FileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const triggerFileInput = () => {
-        FileInputRef.current?.click();
-    }
+    const scrollTo = (finding: Finding) => {
 
-    const convertPDFtoImage = async (file: File): Promise<File[]> => {
-        const arrayBuffer = await file.arrayBuffer();
-
-        const pdf = await pdfjsLib.getDocument({
-            data: arrayBuffer,
-        }).promise
-
-        const images: File[] = [];
-
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            const page = await pdf.getPage(pageNum);
-
-            const viewport = page.getViewport({ scale: 2.0 });
-
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-
-            if (!context) {
-                throw new Error('Failed to create canvas context');
-            }
-
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-
-            await page.render({
-                canvas,
-                canvasContext: context,
-                viewport,
-            }).promise;
-
-            const blob = await new Promise<Blob>((resolve, reject) => {
-                canvas.toBlob(
-                    (result) => {
-                        if (result) {
-                            resolve(result);
-                        } else {
-                            reject(new Error('Unable to convert PDF page to image.'));
-                        }
-                    },
-                    'image/jpeg',
-                    1.0,
-                );
-            });
-
-            const imageFile = new File(
-                [blob],
-                `step_${pageNum}_${Date.now()}.jpg`,
-                {
-                    type: 'image/jpeg',
-                },
-            );
-            images.push(imageFile);
-        }
-
-        return images;
-    };
-
-    const handleFileUpload = async (
-        event: React.ChangeEvent<HTMLInputElement>,
-    )=> {
-        const files = Array.from(event.target.files ?? []);
-
-        if (files.length === 0) {
+        if (finding === selectedFinding) {
             return;
         }
 
-        setIsUploadingPDF(true);
+        setSelectedFinding(finding);
 
-        try {
-            const finalFilesToUpload: File[] = [];
-
-            for (const file of files) {
-                if (file.type === 'application/pdf') {
-                    const convertedImages = await convertPDFtoImage(file);
-                    finalFilesToUpload.push(...convertedImages);
-                } else {
-                    finalFilesToUpload.push(file);
-                }
-            }
-
-            router.post(
-                `/tasks/${task.id}/artifacts`,
-                {
-                    images: finalFilesToUpload,
-                },
-                {
-                    forceFormData: true,
-                    preserveScroll: true,
-
-                    onSuccess: () => {
-                        if (FileInputRef.current) {
-                            FileInputRef.current.value = '';
-                        }
-                    },
-                    onError: (errors) => {
-                        console.error('Error uploading files:', errors);
-                    },
-                    onFinish: () => {
-                        setIsUploadingPDF(false);
-                    },
-                },
-            );
-        } catch (error) {
-            console.error('PDF conversion error:', error);
-            alert('Unable to read the PDF. Check the console.');
-
-            setIsUploadingPDF(false);
-
-            if (FileInputRef.current) {
-                FileInputRef.current.value = '';
-            }
+        if (selectedEvaluationPattern !== null) {
+            setSelectedEvaluationPattern(null);
         }
+
+        findingRefs.current[finding.id]?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+        })
+    }
+
+    const deleteTask = (taskId: number) => {
+        console.log('Delete audit task:', task.id)
+        router.delete(`/tasks/${taskId}`, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+
 
     }
 
+    const resetAudit = (taskId: number) => {
+        router.put(`/tasks/${taskId}/reset`, {
+            preserveScroll: true,
+            preserveState: true,
+        })
+
+    }
+
+    const exportTask = (taskId: number) => {
+
+        console.log('Export audit report:', task.id);
+        window.open(`/tasks/${taskId}/report`);
+    }
 
 
     return (
@@ -206,307 +124,387 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern }: Props) => {
                 <div className="flex items-center gap-4">
                     <AuditActionMenu
                         onExport={() =>
-                            console.log('Export audit report:', task.id)
+                            exportTask(task.id)
+
                         }
                         onDelete={() =>
-                            console.log('Delete audit task:', task.id)
+                            deleteTask(task.id)
+                        }
+                        onReset={() =>
+                            resetAudit(task.id)
                         }
                     />
                 </div>
             </header>
 
             <div className="flex h-screen overflow-hidden pt-16">
-                <aside className="flex w-72 flex-col border-r border-border bg-card text-card-foreground">
-                    <div className="flex grow flex-col overflow-y-auto p-6">
-                        <div className="mb-8 flex items-center gap-2">
-                            <Settings2 className="size-5 text-primary" />
-                            <h2 className="text-lg font-bold text-foreground">
-                                Setup Operativo
-                            </h2>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                                    User Persona
-                                </label>
-
-                                <div className="flex items-center justify-between rounded-lg border border-border bg-muted p-3">
-                                    <span className="text-sm text-foreground">
-                                        {task.user_type ?? 'Standard'}
-                                    </span>
-
-                                    <Pencil className="size-4 text-muted-foreground" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                                    Intent
-                                </label>
-
-                                <div className="rounded-lg border border-border bg-muted p-3">
-                                    <span className="text-sm text-foreground">
-                                        {task.user_intent ??
-                                            'Subscription flow'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                                    Stress Level
-                                </label>
-
-                                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted p-3">
-                                    <div className="h-1.5 grow overflow-hidden rounded-full bg-background">
+                <aside className="flex w-90 flex-col justify-between space-y-4 border-r border-border bg-card text-card-foreground">
+                    <div className="flex max-h-3/4 flex-col space-y-3">
+                        <div className="h-full">
+                            <label className="block p-6 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                                Findings Index
+                            </label>
+                            <div className="flex max-h-full overflow-y-scroll">
+                                <div className="h-fit w-full">
+                                    {findings?.map((finding) => (
                                         <div
-                                            className="h-full bg-primary dark:bg-secondary"
-                                            style={{
-                                                width: `${(task.stress_level ?? 6) * 10}%`,
+                                            key={finding.id}
+                                            ref={(element) => {
+                                                findingRefs.current[
+                                                    finding.id
+                                                ] = element;
                                             }}
-                                        />
-                                    </div>
+                                            className={`group m-2 cursor-pointer rounded-xl border p-4 transition-all ${
+                                                selectedFinding?.id ===
+                                                finding.id
+                                                    ? 'border-primary bg-primary/10 opacity-100 dark:border-secondary dark:bg-secondary/10'
+                                                    : 'border-border opacity-60 hover:border-primary hover:bg-muted/50 hover:opacity-100 dark:hover:border-secondary'
+                                            }`}
+                                            onClick={() => scrollTo(finding)}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <span
+                                                    className={`mt-0.5 rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground ${
+                                                        selectedFinding?.id ===
+                                                        finding.id
+                                                            ? 'bg-primary text-primary-foreground dark:bg-secondary dark:text-secondary-foreground'
+                                                            : ''
+                                                    }`}
+                                                >
+                                                    F
+                                                    {finding.id
+                                                        .toString()
+                                                        .padStart(2, '0')}
+                                                </span>
 
-                                    <span className="text-xs font-extrabold text-primary dark:text-secondary">
-                                        {task.stress_level ?? 6}/10
-                                    </span>
-                                </div>
-                            </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4 className="truncate text-sm font-bold text-foreground">
+                                                        {finding.title}
+                                                    </h4>
 
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                                    Cost of Error
-                                </label>
-
-                                <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-                                    <span className="text-sm font-bold text-destructive uppercase">
-                                        {task.cost_of_error ?? 'Critical'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-10">
-                            <div className="mb-2 flex flex-row justify-between">
-                                <label className="mb-4 block text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                                    Screenshots
-                                </label>
-                                <input
-                                    type="file"
-                                    ref={FileInputRef}
-                                    className="fileInput hidden"
-                                    multiple
-                                    accept="image/*, application/pdf"
-                                    onChange={handleFileUpload}
-                                />
-                                <CopyPlus
-                                    className="size-5 text-primary hover:scale-120 hover:text-secondary dark:text-secondary dark:hover:text-primary"
-                                    onClick={triggerFileInput}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="group relative cursor-pointer">
-                                    <div className="aspect-video overflow-hidden rounded-md border-2 border-primary ring-2 ring-primary/20">
-                                        <img
-                                            className="h-full w-full object-cover"
-                                            alt="Screenshot step 1"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8lEHMAVrkfT5n3YudBV5Y8yhPifn028uwlk1XqPqXWa6ohn4lzrqM1k21WCjQbn8l_H8gst_tddxHR9oP2CyY8oWl_UwE4-fvstxG7UizNa5HXjcBPKV1DoducfykZhf11n_8v9RtlmhZYyJ0BRq_W0oB-kh7bJvHnOSqh7YQCF6ybtdpyB163P8khYT36muUs5ZaQ1ojXCyuqbjEV0wpFq33mobjg8AHHNzLLhe1owVdAsBflabRL9nQJK6uC7pqYb9n0Ix3r-g"
-                                        />
-                                    </div>
-
-                                    <span className="mt-1.5 block text-[10px] font-medium text-primary">
-                                        Step 1
-                                    </span>
-                                </div>
-
-                                <div className="group relative cursor-pointer opacity-50 transition-opacity hover:opacity-100">
-                                    <div className="aspect-video overflow-hidden rounded-md border border-border">
-                                        <img
-                                            className="h-full w-full object-cover"
-                                            alt="Screenshot step 2"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPBW2UnA1s_-JaamJJH5ckB1nGn7m-1UzrO6MNRRFjcJ_zpTdWjSTuYn2vqQ49s2_nF8BG9C_PlajOFSg6pKlHfuMINjVB_pxGMfNgPfAUyJqWGPgTphdkvU58Gf8GaTj-UR0wV59bBgJB2zFRIQnJzji-ovKWTdnNzLoAto-_ExGMibaCZdZs-eIFJc6NUCBs2WyIcCfkzr10mYxjsO3cdAeDwKM13dmDwv6q65lqkt7layuccB7MJmKzlXvLyewGaZrkEr3IHic"
-                                        />
-                                    </div>
-
-                                    <span className="mt-1.5 block text-[10px] font-medium text-muted-foreground">
-                                        Step 2
-                                    </span>
+                                                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                                                        {finding.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="border-t border-border bg-card p-6">
+                    <div className="mt-15 border-t border-border bg-card p-6">
                         <Button
                             type="button"
-                            className="w-full gap-2 rounded-xl py-6 font-bold shadow-lg shadow-primary/20 hover:opacity-90"
+                            onClick={() => setIsConfigureAuditOpen(true)}
+                            className="w-full cursor-pointer gap-2 rounded-xl py-6 font-bold shadow-lg shadow-primary/20 hover:opacity-90"
                         >
                             <Bolt className="size-5" />
-                            <span>Configura e Avvia Audit</span>
+                            <span>Configure and Start Audit</span>
                         </Button>
                     </div>
                 </aside>
 
-                <main className="canvas-grid relative flex grow flex-col items-center justify-center overflow-hidden bg-muted p-8">
-                    <div className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-                        <div className="flex items-center gap-4 border-b border-border bg-muted px-4 py-3">
-                            <div className="flex gap-1.5">
-                                <div className="h-3 w-3 rounded-full bg-muted-foreground/30" />
-                                <div className="h-3 w-3 rounded-full bg-muted-foreground/30" />
-                                <div className="h-3 w-3 rounded-full bg-muted-foreground/30" />
-                            </div>
+                <main className="flex grow flex-col items-center overflow-y-scroll bg-muted p-8">
+                    <div className="w-full max-w-5xl space-y-8 rounded-xl p-4">
+                        {findings?.map((finding) => (
+                            <div
+                                key={finding.id}
+                                ref={(element) => {
+                                    findingRefs.current[finding.id] = element;
+                                }}
+                                className={`scroll-mt-24 rounded-xl border bg-card p-6 shadow-xl backdrop-blur-md transition-all ${
+                                    selectedFinding?.id === finding.id
+                                        ? 'border-primary bg-primary/5 ring-2 ring-primary/70 dark:border-secondary dark:bg-primary dark:ring-secondary/20'
+                                        : 'border-border bg-card'
+                                }`}
+                                onClick={() => scrollTo(finding)}
+                            >
+                                <div className="mb-5 flex items-start justify-between gap-6">
+                                    <div className="min-w-0">
+                                        <span
+                                            className={`text-xs font-bold text-muted-foreground ${selectedFinding?.id === finding.id ? 'text-primary-foreground/80' : ``}`}
+                                        >
+                                            Finding F
+                                            {finding.id
+                                                .toString()
+                                                .padStart(2, '0')}
+                                        </span>
 
-                            <div className="grow rounded-md border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
-                                morpheus.ai/app/v1/subscription
-                            </div>
-                        </div>
+                                        <h2
+                                            className={`mt-1 text-xl font-bold ${
+                                                selectedFinding?.id ===
+                                                finding.id
+                                                    ? 'text-primary-foreground'
+                                                    : 'text-foreground'
+                                            }`}
+                                        >
+                                            {finding.title ||
+                                                'Untitled finding'}
+                                        </h2>
 
-                        <div className="relative">
-                            <img
-                                className="w-full"
-                                alt="A clean web form interface"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFubvng3JtX4rdK2MYRw-Ppin0OI4PMHBDSz63IoYknX_l537Q2jR-z57yVt4WhKsd4blEegg4TOHf7ONF104dTh1EN2Hv77ZvJ-KiFUDdI3dCoCLupdXm2LgCzCu6cijwfA2VleV-P1wAc6E2D1UJOE7FHFhFHYzCxRLZeIr8yHpjSuKsi_lvkD9d3ZcaKihu6zjAFo3Fd12tEAkP5a1tItgc6W0BzIRTE19s0WVPhD1DWuK_-lIDYz7o4zkZH-hZp4uN9McFUZI"
-                            />
+                                        {finding.evaluation_patterns &&
+                                            finding.evaluation_patterns.length >
+                                                0 && (
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {finding.evaluation_patterns.map(
+                                                        (pattern) => (
+                                                            <div
+                                                                key={pattern.id}
+                                                                className="group relative inline-flex"
+                                                            >
+                                                                <div
+                                                                    onClick={() => {
+                                                                        setSelectedFinding(
+                                                                            finding,
+                                                                        );
+                                                                        setSelectedEvaluationPattern(
+                                                                            pattern,
+                                                                        );
+                                                                    }}
+                                                                    className={`flex cursor-default flex-row items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground transition-colors ${
+                                                                        selectedEvaluationPattern?.id ===
+                                                                        pattern.id
+                                                                            ? 'border-primary bg-primary text-primary-foreground ring-4 ring-secondary/50'
+                                                                            : ''
+                                                                    }`}
+                                                                >
+                                                                    <Info
+                                                                        className={`size-4 text-card-foreground transition-colors ${
+                                                                            selectedEvaluationPattern?.id ===
+                                                                            pattern.id
+                                                                                ? 'text-primary dark:text-secondary'
+                                                                                : ''
+                                                                        }`}
+                                                                    />
+                                                                    {'EP'}
+                                                                    {pattern.id
+                                                                        .toString()
+                                                                        .padStart(
+                                                                            2,
+                                                                            '0',
+                                                                        )}{' '}
+                                                                    -{' '}
+                                                                    {
+                                                                        pattern.title
+                                                                    }
+                                                                </div>
 
-                            <div className="absolute top-[35%] left-[25%] h-[12%] w-[40%] rounded-sm border-2 border-destructive bg-destructive/10">
-                                <div className="absolute -top-6 -left-0.5 flex items-center gap-1 rounded-t-sm bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground">
-                                    <TriangleAlert className="size-3.5" />
-                                    H02
+                                                                {pattern.pivot
+                                                                    ?.description && (
+                                                                    <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 hidden w-72 -translate-x-1/2 rounded-lg border border-border bg-card p-3 text-xs leading-relaxed text-card-foreground shadow-xl group-hover:block">
+                                                                        {
+                                                                            pattern
+                                                                                .pivot
+                                                                                .description
+                                                                        }
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
+                                    </div>
+
+                                    <span className="shrink-0 rounded-full bg-destructive px-3 py-1 text-xs font-bold text-destructive-foreground capitalize shadow-xl">
+                                        {finding.severity || 'unknown'}
+                                    </span>
                                 </div>
+
+                                {finding.description && (
+                                    <div className="rounded-lg bg-muted p-4">
+                                        <h3 className="mb-1 text-sm font-bold text-foreground">
+                                            Description
+                                        </h3>
+
+                                        <p className="text-sm leading-relaxed text-muted-foreground">
+                                            {finding.description}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/*finding.pivot?.description && (
+                                    <div className="mt-4 rounded-lg border border-border bg-background p-4">
+                                        <h3 className="mb-1 text-sm font-bold text-foreground">
+                                            Evaluation pattern explanation
+                                        </h3>
+
+                                        <p className="text-sm leading-relaxed text-muted-foreground">
+                                            {finding.pivot.description}
+                                        </p>
+                                    </div>
+                                )*/}
+
+                                {finding.attack_scenario && (
+                                    <div className="mt-4 rounded-lg border border-border bg-background p-4">
+                                        <h3 className="mb-1 text-sm font-bold text-foreground">
+                                            Attack Scenario
+                                        </h3>
+
+                                        <p className="text-sm leading-relaxed text-muted-foreground">
+                                            {finding.attack_scenario}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {finding.impact && (
+                                    <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive p-4">
+                                        <h3 className="mb-1 text-sm font-bold text-foreground">
+                                            Impact
+                                        </h3>
+
+                                        <p className="text-sm leading-relaxed text-muted-foreground">
+                                            {finding.impact}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {finding.mitigations?.length > 0 && (
+                                    <div className="mt-4 rounded-lg border border-chart-2/20 bg-chart-2 p-4 dark:border-chart-2/20 dark:bg-chart-2">
+                                        <h3 className="mb-3 text-sm font-bold text-foreground">
+                                            Mitigations
+                                        </h3>
+
+                                        <div className="space-y-3">
+                                            {finding.mitigations.map(
+                                                (mitigation) => (
+                                                    <div
+                                                        key={mitigation.id}
+                                                        className="rounded-lg border border-border bg-card/70 p-4"
+                                                    >
+                                                        <h4 className="text-sm font-bold text-foreground">
+                                                            {mitigation.title}
+                                                        </h4>
+
+                                                        {mitigation.description && (
+                                                            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                                                                {
+                                                                    mitigation.description
+                                                                }
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    </div>
+                        ))}
+                        {findings.length === 0 && (
+                            <div className="rounded-3xl border border-dashed border-border bg-card-high p-8 text-center">
+                                <h3 className="font-display text-lg font-black tracking-tight text-secondary uppercase">
+                                    No findings yet
+                                </h3>
 
-                    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-card/80 p-1.5 shadow-xl backdrop-blur-md">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-                        >
-                            <ZoomIn className="size-5" />
-                        </Button>
-
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-                        >
-                            <ZoomOut className="size-5" />
-                        </Button>
-
-                        <div className="mx-1 h-4 w-px bg-border" />
-
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-                        >
-                            <Layers className="size-5" />
-                        </Button>
-
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-                        >
-                            <Info className="size-5" />
-                        </Button>
+                                <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+                                    The interface audit has not started yet, or no issues have been detected.
+                                    Upload the required screenshots and start the audit to generate security and
+                                    human-factor findings for this task.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </main>
 
                 <aside className="flex w-96 flex-col border-l border-border bg-card text-card-foreground">
                     <div className="flex border-b border-border">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            className="h-auto flex-1 rounded-none border-b-2 border-primary py-4 text-sm font-bold text-primary hover:bg-muted/50 hover:text-primary"
-                        >
-                            Analisi
-                        </Button>
-
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            className="h-auto flex-1 rounded-none py-4 text-sm font-bold text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                        >
+                        <div className="h-auto flex-1 rounded-none border-b-2 border-primary py-4 text-center text-sm font-bold text-primary">
                             Copilot
-                        </Button>
+                        </div>
                     </div>
 
-                    <div className="flex grow flex-col overflow-hidden">
-                        <div className="border-b border-border bg-muted/50 p-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-bold text-foreground">
-                                    Detected Problems
-                                </h3>
-
-                                <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-black tracking-tighter text-destructive">
-                                    04
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="flex-grow space-y-4 overflow-y-auto p-4">
-                            <div className="rounded-xl border-2 border-primary/20 bg-primary/10 p-4 ring-4 ring-primary/10">
-                                <div className="mb-3 flex items-start gap-3">
-                                    <span className="mt-0.5 rounded-md bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
-                                        H02
-                                    </span>
-
-                                    <div>
-                                        <h4 className="text-sm font-bold text-foreground">
-                                            Concretizing the Abstract Threat
-                                        </h4>
-
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            Step 1: Lack of Error Prevention
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="rounded-lg border border-primary/20 bg-card/80 p-4 shadow-sm">
-                                    <div className="mb-2 flex items-center gap-2">
-                                        <Bot className="size-4 text-primary" />
-
-                                        <span className="text-[10px] font-black tracking-widest text-primary uppercase">
-                                            Morpheus Copilot Summary
+                    <div className="flex grow flex-col overflow-y-auto">
+                        <div className="relative flex-grow space-y-4 overflow-y-auto p-4">
+                            {selectedFinding != null && (
+                                <div className="group rounded-xl border-2 border-primary/20 bg-primary/10 p-4 ring-4 ring-primary/10">
+                                    <div className="mb-3 flex items-start gap-3">
+                                        <span className="mt-0.5 rounded-md bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                                            F
+                                            {selectedFinding.id
+                                                .toString()
+                                                .padStart(2, '0')}
                                         </span>
+
+                                        <div>
+                                            <h4 className="text-sm font-bold text-foreground">
+                                                {selectedFinding.title}
+                                            </h4>
+                                        </div>
+                                        <Button
+                                            className="absolute top-7 right-7 hidden size-6 items-center justify-center group-hover:flex"
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setSelectedFinding(null);
+                                                setSelectedEvaluationPattern(
+                                                    null,
+                                                );
+                                            }}
+                                        >
+                                            <X className="size-4" />
+                                        </Button>
                                     </div>
 
-                                    <p className="text-xs leading-relaxed text-card-foreground-secondary">
-                                        The form lacks real-time validation on
-                                        the credit card field, increasing user
-                                        cognitive load. The error is only
-                                        communicated post-submission, failing
-                                        the "Prevention over Recovery"
-                                        principle.
-                                    </p>
-                                </div>
-                            </div>
+                                    <div className="rounded-lg border border-primary/20 bg-card/80 p-4 shadow-sm">
+                                        <div className="mb-2 flex items-center gap-2">
+                                            <Bot className="size-4 text-primary" />
 
-                            <div className="cursor-pointer rounded-xl border border-border p-4 opacity-60 transition-opacity hover:bg-muted/50 hover:opacity-100">
-                                <div className="flex items-start gap-3">
-                                    <span className="mt-0.5 rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
-                                        H01
-                                    </span>
+                                            <span className="text-[10px] font-black tracking-widest text-primary uppercase">
+                                                Morpheus Copilot Summary
+                                            </span>
+                                        </div>
 
-                                    <div>
-                                        <h4 className="text-sm font-bold text-foreground">
-                                            Visibility of System Status
-                                        </h4>
-
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            The loading state is ambiguous
-                                            during processing.
+                                        <p className="text-xs leading-relaxed text-card-foreground-secondary">
+                                            {selectedFinding.description}
                                         </p>
                                     </div>
                                 </div>
-                            </div>
+                            )}
+                            {selectedEvaluationPattern != null && (
+                                <ChevronsDown className="size-5 w-full text-center transition-transform" />
+                            )}
+                            {selectedEvaluationPattern !== null && (
+                                <div className="group relative cursor-pointer rounded-xl border border-border p-4 opacity-60 transition-opacity hover:bg-muted/50 hover:opacity-100">
+                                    <div className="flex items-start gap-3">
+                                        <span className="mt-0.5 rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                                            EP
+                                            {selectedEvaluationPattern.id
+                                                .toString()
+                                                .padStart(2, '0')}
+                                        </span>
+                                        <Button
+                                            className="absolute top-1 right-1 hidden size-6 items-center justify-center group-hover:flex"
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setSelectedEvaluationPattern(
+                                                    null,
+                                                );
+                                            }}
+                                        >
+                                            <X className="size-4" />
+                                        </Button>
+
+                                        <div>
+                                            <h4 className="text-sm font-bold text-foreground">
+                                                {
+                                                    selectedEvaluationPattern.title
+                                                }
+                                            </h4>
+
+                                            <p className="mt-1 truncate text-xs text-nowrap text-muted-foreground">
+                                                {
+                                                    selectedEvaluationPattern
+                                                        .pivot.description
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="border-t border-border bg-card p-4">
@@ -530,6 +528,13 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern }: Props) => {
                     </div>
                 </aside>
             </div>
+
+            <ConfigureAuditDialog
+                open={isConfigureAuditOpen}
+                onClose={() => setIsConfigureAuditOpen(false)}
+                task={task}
+                evaluationPatterns={evaluationPattern}
+            />
         </div>
     );
 };

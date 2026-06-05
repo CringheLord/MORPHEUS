@@ -6,23 +6,32 @@ use App\Models\EvaluationPattern;
 use App\Models\StudyCase;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TaskController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function inspect(  $taskId ) {
+    public function inspect(  Task $task ) {
 
-        $task = Task::findOrFail($taskId);
+        $task->load([
+            'findings.evaluationPatterns',
+            'findings.mitigations',
+            'artifacts',
+            'studyCase',
+        ]);
+
         $studyCase = $task->studyCase;
-        $evaluationPattern = EvaluationPattern::with('humanFactor', 'uiTags');
+        $findings = $task->findings();
+        $evaluationPatterns = EvaluationPattern::with('humanFactor', 'uiTags')->get();
 
         return Inertia::render('audits/InterfaceAudit', [
-            'studyCase' => $studyCase,
+            'studyCase' => $task->studyCase,
             'task' => $task,
-            'evaluationPattern' => $evaluationPattern,
+            'evaluationPattern' => $evaluationPatterns,
         ]);
     }
 
@@ -99,11 +108,55 @@ class TaskController extends Controller
 
     }
 
+    public function generateReport($taskId)
+    {
+        $task = Task::query()
+            ->with([
+                'findings.evaluationPatterns',
+                'findings.evaluationPatterns.humanFactor', // only if this relation exists
+            ])
+            ->findOrFail($taskId);
+
+        $pdf = Pdf::loadView('audits.report', [
+            'task' => $task,
+        ])
+            ->setPaper('a4')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+            ]);
+
+        return $pdf->stream('morpheus-audit-report.pdf');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Task $task)
     {
-        //
+        $task->load('studyCase');
+
+        $task->delete();
+
+        return redirect()
+            ->route('study-cases.show', $task->study_case_id)
+            ->with('success', 'Task deleted successfully.');
+    }
+
+    public function reset(Task $task)
+    {
+        $task->load(
+        'findings',
+                'artifacts',
+        );
+
+        foreach ($task->artifacts as $artifact) {
+            Storage::disk('public')->delete($artifact->file_path);
+            $artifact->delete();
+        }
+        $task->findings()->delete();
+
+
+        return back()->with('success', 'Task reset successfully.');
     }
 }

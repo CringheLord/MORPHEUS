@@ -1,5 +1,6 @@
 // resources/js/components/audit/AuditActionMenu.tsx
 
+import { router } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     ChevronsLeft,
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 type Props = {
     onExport: () => void;
     onDelete: () => void;
+    onReset: () => void;
 };
 
 const menuVariants = {
@@ -58,9 +60,10 @@ const itemVariants = {
     },
 };
 
-export default function AuditActionMenu({ onExport, onDelete }: Props) {
+export default function AuditActionMenu({ onExport, onDelete, onReset }: Props) {
     const [open, setOpen] = React.useState(false);
     const [deleteOpen, setDeleteOpen] = React.useState(false);
+    const [resetOpen, setResetOpen] = React.useState(false);
 
     const rootRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -138,7 +141,7 @@ export default function AuditActionMenu({ onExport, onDelete }: Props) {
                                 variant="ghost"
                                 className="gap-2 text-sm text-alert hover:bg-alert/10 hover:text-alert"
                                 onClick={() => {
-                                    setDeleteOpen(true);
+                                    setResetOpen(true);
                                     setOpen(false);
                                 }}
                             >
@@ -208,6 +211,56 @@ export default function AuditActionMenu({ onExport, onDelete }: Props) {
                                     }}
                                 >
                                     Delete
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {resetOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                        className="fixed inset-0 z-[170] flex items-center justify-center bg-background/70 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                            className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl"
+                        >
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold text-foreground">
+                                    Reset this audit?
+                                </h3>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                    This action cannot be undone.
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setResetOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+
+                                <Button
+                                    type="button"
+                                    className="bg-alert text-alert-foreground hover:bg-alert/90"
+                                    onClick={() => {
+                                        onReset();
+                                        setResetOpen(false);
+                                    }}
+                                >
+                                    Reset
                                 </Button>
                             </div>
                         </motion.div>

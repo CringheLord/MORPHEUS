@@ -20,4 +20,9 @@ class Artifact extends Model
     public function task() {
         return $this->belongsTo(Task::class);
     }
+
+    public function findings()
+    {
+        return $this->hasMany(Finding::class);
+    }
 }

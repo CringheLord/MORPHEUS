@@ -11,6 +11,7 @@ import React, { useMemo, useState } from 'react';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 
 import type { Task, Paginated, StudyCase } from '@/types';
+import { cn } from '@/lib/utils';
 
 
 type Props = {
@@ -89,8 +90,10 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                             <th className="text-outline px-6 py-4 text-[11px] font-black tracking-wider uppercase">
                                 Task Name
                             </th>
-                            <th className="text-outline flex items-center px-10 py-4 text-[11px] font-black tracking-wider uppercase gap-2">
-                                User Type<ChevronRight className="overflow-hidden size-4 text-ellipsis whitespace-nowrap text-card-foreground-secondary" />Role
+                            <th className="text-outline flex items-center gap-2 px-10 py-4 text-[11px] font-black tracking-wider uppercase">
+                                User Type
+                                <ChevronRight className="size-4 overflow-hidden text-ellipsis whitespace-nowrap text-card-foreground-secondary" />
+                                Role
                             </th>
                             <th className="text-outline px-6 py-4 text-[11px] font-black tracking-wider uppercase">
                                 User Intent
@@ -126,7 +129,7 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <span className="block overflow-hidden text-sm font-bold text-ellipsis whitespace-nowrap">
+                                        <span className="block max-w-62.5 overflow-hidden text-sm font-bold text-ellipsis whitespace-nowrap">
                                             {task.task_name}
                                         </span>
                                     </td>
@@ -143,13 +146,15 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                                       ? 'Novice'
                                                       : 'Critical Operator'}
                                                 <ChevronRight className="overflow-hidden text-ellipsis whitespace-nowrap text-card-foreground-secondary" />
-                                                {task.user_role}
+                                                <span className="text-sm text-card-foreground overflow-hidden text-ellipsis whitespace-nowrap max-w-62.5">
+                                                    {task.user_role}
+                                                </span>
                                             </span>
                                         </div>
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <p className="max-w-[200px] overflow-hidden text-xs text-ellipsis whitespace-nowrap text-card-foreground">
+                                        <p className="max-w-50 overflow-hidden text-xs text-ellipsis whitespace-nowrap text-card-foreground">
                                             {task.user_intent}
                                         </p>
                                     </td>
@@ -229,6 +234,14 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                 </tr>
                             );
                         })}
+                        {tasks.total <= 3 && (
+                            <div
+                                className={cn(
+                                    'w-full',
+                                    tasks.total <= 2 ? 'h-[15vh]' : 'h-[10vh]',
+                                )}
+                            />
+                        )}
                         <tr className="h-15">
                             <td
                                 colSpan={7}

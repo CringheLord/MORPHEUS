@@ -165,6 +165,10 @@ const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks, questionn
         form.clearErrors(field);
         setEditingField(null);
     };
+    const deleteStudyCase = (studyCaseId: number) => {
+        router.delete(`/study-cases/${studyCaseId}`);
+    }
+
 
     return (
         <div>
@@ -248,7 +252,7 @@ const Show = ({ studyCase, relatedUsers, currentLayerFromPivot, tasks, questionn
                                 console.log('Reset layer:', layer)
                             }
                             onDelete={() =>
-                                console.log('Delete study case:', studyCase.id)
+                                deleteStudyCase(studyCase.id)
                             }
                         />
                     </div>

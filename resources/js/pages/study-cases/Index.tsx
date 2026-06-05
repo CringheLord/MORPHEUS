@@ -109,8 +109,8 @@ export default function Index( { StudyCases, totalSC, AvgSC }: Props) {
                         </div>
                         <div className="group relative mt-15 flex flex-row content-center items-center justify-center gap-1 rounded-xl border-t border-r border-b border-secondary p-5 hover:ring-5 hover:ring-secondary/10 md:col-span-2">
                             <div className="absolute left-0 flex items-center gap-1 text-secondary">
-                                <ChevronsLeft className="size-8 opacity-30 transition-all duration-200 group-hover:scale-120" />
-                                <ChevronsLeft className="size-9 opacity-60 transition-all duration-200 group-hover:scale-120" />
+                                <ChevronsLeft className="hidden size-8 opacity-30 transition-all duration-200 group-hover:scale-120" />
+                                <ChevronsLeft className="hidden size-9 opacity-60 transition-all duration-200 group-hover:scale-120" />
                                 <ChevronsLeft className="size-10 transition-all duration-200 group-hover:scale-120" />
                             </div>
 

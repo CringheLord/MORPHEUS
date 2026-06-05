@@ -8,7 +8,8 @@ class Finding extends Model
 {
     //
     protected $fillable = [
-        'study_case_id',
+        'title',
+        'task_id',
         'artifact_id',
         'evaluation_pattern_id',
         'executive_question',
@@ -17,4 +18,19 @@ class Finding extends Model
         'internal_reasoning',
         'visual_element_description',
     ];
+
+    public function task()
+    {
+        return $this->belongsTo(Task::class);
+    }
+
+    public function mitigations()
+    {
+        return $this->hasMany(Mitigation::class);
+    }
+
+    public function evaluationPatterns()
+    {
+        return $this->belongsToMany(EvaluationPattern::class, 'evaluation_pattern_finding')->withPivot('description');
+    }
 }

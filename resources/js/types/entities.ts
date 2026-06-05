@@ -22,6 +22,16 @@ export type EvaluationPattern = {
     number_of_violations: number;
 
     ui_tags: uiTag[];
+
+    findings?: Array<
+        Finding & {
+        pivot: {
+            finding_id: number;
+            evaluation_pattern_id: number;
+            description: string;
+        };
+    }
+    >;
 };
 
 export type uiTag = {
@@ -75,7 +85,17 @@ export type Task = {
     user_intent: string;
     stress_level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; //Critical Operator (Under constant stress)
     cost_of_error: 'low' | 'medium' | 'critical';
+
+    findings?: Finding[] | null;
+    artifacts?: Artifact[] | null;
 };
+
+export type Artifact = {
+    id: number;
+    task_id: number;
+    image_url: string;
+    file_path: string;
+}
 
 export type Questionnaire = {
     id: number;
@@ -117,6 +137,36 @@ export type Answer = {
     score: number | null;
     text: string | null;
     question_id: number;
+}
+
+export type Finding = {
+    id: number;
+    title: string;
+    task_id: number;
+    artifact_id: number;
+    description: string;
+    attack_scenario: string;
+    impact: string;
+    severity: string;
+
+    evaluation_patterns?: Array<
+        EvaluationPattern & {
+        pivot: {
+            finding_id: number;
+            evaluation_pattern_id: number;
+            description: string;
+        };
+    }
+    >;
+
+    mitigations: Mitigation[];
+};
+
+export type Mitigation = {
+    id: number;
+    title: string;
+    finding_id: number;
+    description: string;
 }
 
 

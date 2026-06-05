@@ -13,15 +13,13 @@ return new class extends Migration
     {
         Schema::create('findings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('study_case_id')->constrained()->cascadeOnDelete();
+            $table->string('title')->nullable();
+            $table->foreignId('task_id')->constrained()->cascadeOnDelete();
             $table->foreignId('artifact_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('evaluation_pattern_id')->constrained();
-            $table->text('visual_element_description');
-            $table->text('internal_reasoning');
-            $table->text('pragmatic_explanation');
+            $table->text('description')->nullable();
+            $table->text('attack_scenario');
+            $table->text('impact')->nullable();
             $table->string('severity')->nullable();
-            $table->text('executive_question');
-            $table->string('status')->default('pending');
 
             $table->timestamps();
         });
