@@ -16,10 +16,12 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->foreignId('task_id')->constrained()->cascadeOnDelete();
             $table->foreignId('artifact_id')->constrained()->cascadeOnDelete();
-            $table->text('description')->nullable();
-            $table->text('attack_scenario');
+            $table->longText('internal_reasoning')->nullable();
+            $table->longText('pragmatic_explanation')->nullable();
+            $table->longText('description')->nullable();
             $table->text('impact')->nullable();
             $table->string('severity')->nullable();
+            $table->longText('executive_question')->nullable();
 
             $table->timestamps();
         });

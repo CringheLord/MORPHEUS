@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Bolt, CopyPlus, ImagePlus, Loader2, X } from 'lucide-react';
+import { Bolt, Check, CopyPlus, ImagePlus, Loader2, X } from 'lucide-react';
 
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
-import type { EvaluationPattern, Task } from '@/types';
+import type { Artifact, EvaluationPattern, Task } from '@/types';
 
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -40,9 +40,9 @@ export default function ConfigureAuditDialog({
     task,
     evaluationPatterns,
 }: Props) {
-    const [activeTab, setActiveTab] = useState<'screenshots' | 'setup'>(
-        'screenshots',
-    );
+    const [activeTab, setActiveTab] = useState<
+        'screenshots' | 'evaluation_patterns' | 'setup'
+    >('screenshots');
 
     const [deleteWarningOpen, setDeleteWarningOpen] = useState(false);
     const [artifactToDelete, setArtifactToDelete] = useState<number | null>(null);
@@ -50,17 +50,41 @@ export default function ConfigureAuditDialog({
 
     const [isUploadingPDF, setIsUploadingPDF] = useState(false);
 
-    const [aiProvider, setAiProvider] = useState<string | null>(null);
-    const [aiModel, setAiModel] = useState<string | null>(null);
+    const [aiProvider, setAiProvider] = useState<string>('openai');
+    const [aiModel, setAiModel] = useState<string>('gpt-4o-mini');
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [flippedArtifactId, setFlippedArtifactId] = useState<number | null>(null);
-    const [artifactPageUrls, setArtifactPageUrls] = useState<Record<number, string>>([]);
+    const [artifactPageUrlDrafts, setArtifactPageUrlDrafts] = useState<Record<number, string>>({});
+
+    const [selectedEvaluationPatternIds, setSelectedEvaluationPatternIds] = useState<number[]>([]);
 
     const triggerFileInput = () => {
         fileInputRef.current?.click();
     };
+
+    const getArtifactPageUrl = (artifact: Artifact) => {
+        return artifactPageUrlDrafts[artifact.id] ?? artifact.page_url ?? '';
+    }
+
+    const saveArtifactPageUrl = (artifactId: number) => {
+        router.patch(`/tasks/${task.id}/artifacts/${artifactId}/page-url`, {
+            page_url: artifactPageUrlDrafts[artifactId] ?? '',
+        },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setArtifactPageUrlDrafts((current) => {
+                    const next = { ...current };
+                    delete next[artifactId];
+
+                    return next;
+                });
+            },
+        });
+    }
 
 
     const deleteArtifact = (artifactId: number) => {
@@ -217,31 +241,61 @@ export default function ConfigureAuditDialog({
         }
     };
 
-    const startAudit = () => {
-        console.log('Start audit for task:', task.id);
+    const toggleEvaluationPattern = (patternId: number) => {
+        setSelectedEvaluationPatternIds((current) =>
+            current.includes(patternId)
+                ? current.filter((id) => id !== patternId)
+                : [...current, patternId],
+        );
+    };
 
-        // Later you can replace this with your real route, for example:
-        // router.post(`/tasks/${task.id}/run-analysis`, {}, {
-        //     preserveScroll: true,
-        //     onSuccess: () => onClose(),
-        // });
+    console.log(selectedEvaluationPatternIds);
+    console.log(aiProvider);
+
+    const startAudit = () => {
+        router.post(
+            route('tasks.run-analysis', task.id),
+            {
+                provider: aiProvider,
+                model: aiModel,
+                evaluation_pattern_ids: selectedEvaluationPatternIds,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+
+                onStart: () => {
+                    console.log('Starting audit payload:', {
+                        provider: aiProvider,
+                        model: aiModel,
+                        evaluation_pattern_ids: selectedEvaluationPatternIds,
+                    });
+                },
+
+                onError: (errors) => {
+                    console.error('Audit validation errors:', errors);
+                },
+
+                onSuccess: () => {
+                    console.log('Audit request completed successfully');
+                    onClose();
+                },
+            },
+        );
     };
 
 
 
     const artifacts = task.artifacts ?? [];
 
-    useEffect(() => {
-        
-    }, [task.artifacts])
 
     if (!open) {
         return null;
     }
 
     return (
-        <div className="fixed inset-0 z-[40] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
-            <div className="border-outline-variant w-full max-w-5xl overflow-hidden rounded-[2rem] border bg-card shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+            <div className="border-outline-variant w-full max-w-5xl overflow-hidden rounded-4xl border bg-card shadow-2xl">
                 <div className="flex items-start justify-between gap-6 border-b border-border p-8">
                     <div>
                         <h2 className="font-display text-2xl font-black tracking-tight text-foreground uppercase">
@@ -266,7 +320,7 @@ export default function ConfigureAuditDialog({
 
                 <div className="border-b border-border px-8 pt-6">
                     <div className="rounded-2xl bg-surface-container-low p-1">
-                        <div className="grid grid-cols-2 gap-1">
+                        <div className="grid grid-cols-3 gap-1">
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('screenshots')}
@@ -277,6 +331,20 @@ export default function ConfigureAuditDialog({
                                 }`}
                             >
                                 Screenshots
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setActiveTab('evaluation_patterns')
+                                }
+                                className={`rounded-xl px-4 py-3 text-xs font-black tracking-widest uppercase transition-all ${
+                                    activeTab === 'evaluation_patterns'
+                                        ? 'bg-card text-primary shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                Evalutaion
                             </button>
 
                             <button
@@ -301,7 +369,9 @@ export default function ConfigureAuditDialog({
                             transform:
                                 activeTab === 'screenshots'
                                     ? 'translateX(0%)'
-                                    : 'translateX(-100%)',
+                                    : activeTab === 'evaluation_patterns'
+                                      ? 'translateX(-100%)'
+                                      : 'translateX(-200%)',
                         }}
                     >
                         <section className="w-full shrink-0 space-y-6 pr-3">
@@ -349,31 +419,139 @@ export default function ConfigureAuditDialog({
                                 </div>
 
                                 {artifacts.length > 0 ? (
-                                    <div className="scrollbar-hide mt-8 grid max-h-[350px] grid-cols-2 gap-4 overflow-y-scroll md:grid-cols-3">
+                                    <div className="scrollbar-hide mt-8 grid max-h-87.5 grid-cols-2 gap-4 overflow-y-scroll md:grid-cols-3">
                                         {artifacts.map((artifact, index) => (
                                             <div
-                                                key={artifact.id ?? index}
+                                                key={artifact.id}
                                                 className="group relative opacity-70 transition-opacity hover:opacity-100"
                                             >
-                                                <div className="aspect-video overflow-hidden rounded-2xl border border-border bg-card">
-                                                    <X
-                                                        onClick={() =>
-                                                            deleteArtifact(
-                                                                artifact.id,
-                                                            )
-                                                        }
-                                                        className="absolute right-1 m-1 hidden size-5 cursor-pointer rounded-full text-destructive group-hover:flex hover:scale-120 hover:bg-destructive/20"
-                                                    ></X>
-                                                    <img
-                                                        className="h-full w-full object-cover"
-                                                        alt={`Screenshot ${index + 1}`}
-                                                        src={artifact.image_url}
-                                                    />
+                                                <div className="relative aspect-video [prespective:1000px]">
+                                                    <div
+                                                        className={`relative h-full w-full transition-transform duration-500 transform-3d ${
+                                                            flippedArtifactId ===
+                                                            artifact.id
+                                                                ? 'transform-[rotateY(180deg)]'
+                                                                : ''
+                                                        }`}
+                                                    >
+                                                        {/*FRONT SIDE */}
+                                                        <div
+                                                            onClick={() =>
+                                                                setFlippedArtifactId(
+                                                                    artifact.id,
+                                                                )
+                                                            }
+                                                            className="boder-border absolute inset-0 cursor-pointer overflow-hidden rounded-2xl border bg-card backface-hidden"
+                                                        >
+                                                            <X
+                                                                onClick={(
+                                                                    event,
+                                                                ) => {
+                                                                    event.stopPropagation();
+                                                                    deleteArtifact(
+                                                                        artifact.id,
+                                                                    );
+                                                                }}
+                                                                className="absolute top-2 right-2 z-10 hidden size-5 cursor-pointer rounded-full text-destructive group-hover:block hover:scale-120 hover:bg-destructive/20"
+                                                            />
+                                                            <img
+                                                                className="h-full w-full object-cover"
+                                                                alt={`Screenshot ${index + 1}`}
+                                                                src={
+                                                                    artifact.image_url
+                                                                }
+                                                            />
+
+                                                            <div className="absolute inset-x-0 bottom-0 bg-black/45 px-3 py-2 text-[10px] font-black tracking-widest uppercase opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                                                                Click to edit
+                                                                relative page
+                                                                URL
+                                                            </div>
+                                                        </div>
+                                                        {/*BACKSIDE */}
+                                                        <div
+                                                            className="absolute inset-0 flex transform-[rotateY(180deg)] cursor-pointer flex-col justify-between rounded-2xl border border-border bg-card p-4 backface-hidden"
+                                                            onClick={() =>
+                                                                setFlippedArtifactId(
+                                                                    null,
+                                                                )
+                                                            }
+                                                        >
+                                                            <label className="text-10 cursor-pointer font-black tracking-widest text-muted-foreground uppercase">
+                                                                Page URL
+                                                            </label>
+                                                            <Button
+                                                                variant={
+                                                                    'secondary'
+                                                                }
+                                                                onClick={() =>
+                                                                    saveArtifactPageUrl(
+                                                                        artifact.id,
+                                                                    )
+                                                                }
+                                                                className="absolute top-3 right-3 size-8 cursor-pointer hover:scale-115"
+                                                                size="icon"
+                                                            >
+                                                                <Check className="size-7" />
+                                                            </Button>
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    artifactPageUrlDrafts[
+                                                                        artifact
+                                                                            .id
+                                                                    ] ??
+                                                                    artifact.page_url ??
+                                                                    ''
+                                                                }
+                                                                onClick={(
+                                                                    event,
+                                                                ) =>
+                                                                    event.stopPropagation()
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) => {
+                                                                    event.preventDefault();
+                                                                    setArtifactPageUrlDrafts(
+                                                                        (
+                                                                            current,
+                                                                        ) => ({
+                                                                            ...current,
+                                                                            [artifact.id]:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                        }),
+                                                                    );
+                                                                }}
+                                                                placeholder="https://example.com/login"
+                                                                className="mt-3 w-full rounded-xl border border-border bg-card-highest px-3 py-2 text-sm font-medium text-foreground transition outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                            />
+                                                            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                                                                This URL will be
+                                                                used as extra
+                                                                context for the
+                                                                AI analysis of
+                                                                this screenshot.
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 <span className="mt-2 block text-[10px] font-black tracking-widest text-muted-foreground uppercase">
                                                     Step {index + 1}
                                                 </span>
+                                                {/*{(artifactPageUrlDrafts[
+                                                    artifact.id
+                                                ] ||
+                                                    artifact.page_url) && (
+                                                    <span className="mt-1 block truncate text-[10px] text-primary">
+                                                        {artifactPageUrlDrafts[
+                                                            artifact.id
+                                                        ] || artifact.page_url}
+                                                    </span>
+                                                )}*/}
                                             </div>
                                         ))}
                                     </div>
@@ -382,7 +560,7 @@ export default function ConfigureAuditDialog({
                                         type="button"
                                         onClick={triggerFileInput}
                                         disabled={isUploadingPDF}
-                                        className="cursor-pointer border-outline-variant mt-8 flex w-full flex-col items-center justify-center rounded-3xl border border-dashed bg-card/60 p-10 text-center transition hover:border-primary hover:bg-card"
+                                        className="border-outline-variant mt-8 flex w-full cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed bg-card/60 p-10 text-center transition hover:border-primary hover:bg-card"
                                     >
                                         <ImagePlus className="mb-3 size-8 text-primary" />
 
@@ -399,6 +577,102 @@ export default function ConfigureAuditDialog({
                             </div>
                         </section>
 
+                        <section className="w-full shrink-0 space-y-6 px-3">
+                            <div className="rounded-3xl border border-border bg-surface-container-low p-8">
+                                <div className="flex items-start justify-between gap-6">
+                                    <div>
+                                        <h3 className="font-display text-lg font-black tracking-tight text-foreground uppercase">
+                                            Evaluation Patterns
+                                        </h3>
+
+                                        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                                            Select the Evaluation Patterns that
+                                            the AI should use during the
+                                            interface audit. These patterns
+                                            define the human-factor and
+                                            usable-security criteria used to
+                                            inspect the uploaded screenshots.
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-2xl border border-border bg-card px-4 py-3 text-right">
+                                        <span className="block text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+                                            Selected
+                                        </span>
+
+                                        <span className="text-2xl font-black text-primary"></span>
+                                    </div>
+                                </div>
+
+                                <div className="scrollbar-hide mt-8 grid max-h-90 grid-cols-1 gap-4 overflow-y-auto md:grid-cols-2">
+                                    {evaluationPatterns.map((pattern) => {
+                                        const selected =
+                                            selectedEvaluationPatternIds.includes(
+                                                pattern.id,
+                                            );
+
+                                        return (
+                                            <button
+                                                key={pattern.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    toggleEvaluationPattern(
+                                                        pattern.id,
+                                                    )
+                                                }
+                                                className={`rounded-2xl border p-5 text-left transition-all ${
+                                                    selected
+                                                        ? 'border-primary bg-primary/10 shadow-sm'
+                                                        : 'border-border bg-card hover:border-primary/60 hover:bg-card-high'
+                                                }`}
+                                            >
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+                                                                {pattern.h_id}
+                                                            </span>
+
+                                                            {pattern.human_factor && (
+                                                                <span className="rounded-md bg-surface-container-high px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                                                                    {
+                                                                        pattern
+                                                                            .human_factor
+                                                                            .name
+                                                                    }
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <h4 className="mt-3 text-sm font-black text-foreground">
+                                                            {pattern.title}
+                                                        </h4>
+
+                                                        <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
+                                                            {pattern.audit_rule ??
+                                                                pattern.trigger}
+                                                        </p>
+                                                    </div>
+
+                                                    <div
+                                                        className={`flex size-6 shrink-0 items-center justify-center rounded-full border ${
+                                                            selected
+                                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                                : 'border-border bg-surface-container-low'
+                                                        }`}
+                                                    >
+                                                        {selected && (
+                                                            <Check className="size-4" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </section>
+
                         <section className="w-full shrink-0 space-y-6 pl-3">
                             <div className="rounded-3xl border border-border bg-surface-container-low p-8">
                                 <h3 className="font-display text-lg font-black tracking-tight text-foreground uppercase">
@@ -411,14 +685,29 @@ export default function ConfigureAuditDialog({
                                 </p>
 
                                 <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                                    <div className="rounded-2xl border border-border bg-card p-5">
-                                        <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">
-                                            Screenshots
-                                        </span>
+                                    <div className="rounded-2xl border border-border bg-card p-5 flex flex-row gap-8">
+                                        <div className="border-r border-border  pr-8">
+                                            <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+                                                Screenshots
+                                            </span>
 
-                                        <p className="mt-2 text-3xl font-black text-primary">
-                                            {artifacts.length}
-                                        </p>
+                                            <p className="mt-2 text-3xl font-black text-primary text-center">
+                                                {artifacts.length}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+                                                Patterns
+                                            </span>
+
+                                            <p className="mt-2 text-3xl font-black text-primary text-center">
+                                                {selectedEvaluationPatternIds.length === 0 ? (
+                                                    "All"
+                                                ) : (
+                                                    selectedEvaluationPatternIds.length
+                                                )}
+                                            </p>
+                                        </div>
                                     </div>
 
                                     <div className="rounded-2xl border border-border bg-card p-5">
@@ -428,12 +717,22 @@ export default function ConfigureAuditDialog({
 
                                         <select
                                             value={aiProvider}
-                                            onChange={(event) => setAiProvider(event.target.value)}
-                                            className="mt-3 w-full rounded-xl border border-border bg-surface-container-low px-3 py-2 text-sm font-bold text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                            onChange={(event) =>
+                                                setAiProvider(
+                                                    event.target.value,
+                                                )
+                                            }
+                                            className="mt-3 w-full rounded-xl border border-border bg-surface-container-low px-3 py-2 text-sm font-bold text-foreground transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                         >
-                                            <option value="openai">OpenAI</option>
-                                            <option value="anthropic">Anthropic</option>
-                                            <option value="google">Google</option>
+                                            <option value="openai">
+                                                OpenAI
+                                            </option>
+                                            <option value="anthropic">
+                                                Anthropic
+                                            </option>
+                                            <option value="google">
+                                                Google
+                                            </option>
                                         </select>
                                     </div>
 
@@ -444,29 +743,56 @@ export default function ConfigureAuditDialog({
 
                                         <select
                                             value={aiModel}
-                                            onChange={(event) => setAiModel(event.target.value)}
-                                            className="mt-3 w-full rounded-xl border border-border bg-surface-container-low px-3 py-2 text-sm font-bold text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                            onChange={(event) =>
+                                                setAiModel(event.target.value)
+                                            }
+                                            className="mt-3 w-full rounded-xl border border-border bg-surface-container-low px-3 py-2 text-sm font-bold text-foreground transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                         >
                                             {aiProvider === 'openai' && (
                                                 <>
-                                                    <option value="gpt-4o">GPT-4o</option>
-                                                    <option value="gpt-4o-mini">GPT-4o mini</option>
-                                                    <option value="gpt-4.1">GPT-4.1</option>
-                                                    <option value="gpt-4.1-mini">GPT-4.1 mini</option>
+                                                    <option value="">
+                                                        Default
+                                                    </option>
+                                                    <option value="gpt-4o">
+                                                        GPT-4o
+                                                    </option>
+                                                    <option value="gpt-4o-mini">
+                                                        GPT-4o mini
+                                                    </option>
+                                                    <option value="gpt-4.1">
+                                                        GPT-4.1
+                                                    </option>
+                                                    <option value="gpt-4.1-mini">
+                                                        GPT-4.1 mini
+                                                    </option>
                                                 </>
                                             )}
 
                                             {aiProvider === 'anthropic' && (
                                                 <>
-                                                    <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                                                    <option value="claude-3-haiku">Claude 3 Haiku</option>
+                                                    <option value="">
+                                                        Default
+                                                    </option>
+                                                    <option value="claude-3-5-sonnet">
+                                                        Claude 3.5 Sonnet
+                                                    </option>
+                                                    <option value="claude-3-haiku">
+                                                        Claude 3 Haiku
+                                                    </option>
                                                 </>
                                             )}
 
                                             {aiProvider === 'google' && (
                                                 <>
-                                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                                    <option value="">
+                                                        Default
+                                                    </option>
+                                                    <option value="gemini-1.5-pro">
+                                                        Gemini 1.5 Pro
+                                                    </option>
+                                                    <option value="gemini-1.5-flash">
+                                                        Gemini 1.5 Flash
+                                                    </option>
                                                 </>
                                             )}
                                         </select>
@@ -500,27 +826,47 @@ export default function ConfigureAuditDialog({
                     </Button>
 
                     <div className="flex items-center gap-3">
-                        {activeTab === 'setup' && (
+                        {activeTab !== 'screenshots' && (
                             <Button
                                 type="button"
                                 variant="ghost"
-                                onClick={() => setActiveTab('screenshots')}
+                                onClick={() =>
+                                    setActiveTab(
+                                        activeTab === 'setup'
+                                            ? 'evaluation_patterns'
+                                            : 'screenshots',
+                                    )
+                                }
                                 className="px-8 tracking-widest uppercase"
                             >
                                 Back
                             </Button>
                         )}
 
-                        {activeTab === 'screenshots' ? (
+                        {activeTab === 'screenshots' && (
                             <Button
                                 type="button"
-                                onClick={() => setActiveTab('setup')}
+                                onClick={() =>
+                                    setActiveTab('evaluation_patterns')
+                                }
                                 disabled={isUploadingPDF}
                                 className="rounded-2xl px-10 py-6 text-xs font-black tracking-widest uppercase"
                             >
                                 Continue
                             </Button>
-                        ) : (
+                        )}
+
+                        {activeTab === 'evaluation_patterns' && (
+                            <Button
+                                type="button"
+                                onClick={() => setActiveTab('setup')}
+                                className="rounded-2xl px-10 py-6 text-xs font-black tracking-widest uppercase"
+                            >
+                                Continue
+                            </Button>
+                        )}
+
+                        {activeTab === 'setup' && (
                             <Button
                                 type="button"
                                 onClick={startAudit}

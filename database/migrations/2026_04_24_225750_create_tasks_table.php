@@ -21,6 +21,15 @@ return new class extends Migration
             $table->integer('stress_level')->default(5);
             $table->string('cost_of_error')->default('medium');
 
+            //audit control
+            $table->string('audit_status')->default('pending');
+            $table->unsignedBigInteger('audit_current')->default(0);
+            $table->unsignedInteger('audit_total')->default(0);
+            $table->string('audit_message')->nullable();
+            $table->text('audit_error')->nullable();
+            $table->timestamp('audit_started_at')->nullable();
+            $table->timestamp('audit_completed_at')->nullable();
+
             $table->timestamps();
         });
     }

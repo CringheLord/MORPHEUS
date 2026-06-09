@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\AIController;
 use App\Http\Controllers\QuestionnairesController;
 use App\Http\Controllers\StudyCaseController;
 use App\Http\Controllers\EvaluationPatternController;
 use App\Http\Controllers\ArtifactController;
 use App\Http\Controllers\TaskController;
 use App\Http\Middleware\SharedQuestionnaire;
+use App\Services\MorpheusAiService;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -56,8 +58,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('tasks.audits.artifacts.store');
     Route::delete('tasks/{task}/artifacts/{artifact}', [ArtifactController::class, 'destroy'])
         ->name('tasks.audits.artifacts.destroy');
+    Route::patch('tasks/{task}/artifacts/{artifact}/page-url', [ArtifactController::class, 'updatePageUrl'])
+        ->name('tasks.audits.artifacts.updatePageUrl');
     Route::get('tasks/{task}/report', [TaskController::class, 'generateReport'])
         ->name('tasks.generateReport');
+
+    //Morpheus Agent
+    Route::post('tasks/{task}/run-analysis', [AIController::class, 'startAudit'])->name("tasks.run-analysis");
+    Route::post('tasks/{task}/morpheus-agent', [AIController::class, 'continueConversation'])->name('tasks.morpheus-agent');
+
 
     Route::put('questionnaires/{questionnaire}/share', [QuestionnairesController::class, 'share'])
         ->name('questionnaires.share');

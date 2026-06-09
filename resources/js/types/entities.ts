@@ -86,6 +86,7 @@ export type Task = {
     stress_level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; //Critical Operator (Under constant stress)
     cost_of_error: 'low' | 'medium' | 'critical';
 
+    conversation?: AgentConversation | null;
     findings?: Finding[] | null;
     artifacts?: Artifact[] | null;
 };
@@ -95,6 +96,7 @@ export type Artifact = {
     task_id: number;
     image_url: string;
     file_path: string;
+    page_url: string;
 }
 
 export type Questionnaire = {
@@ -168,5 +170,24 @@ export type Mitigation = {
     finding_id: number;
     description: string;
 }
+
+export type AgentConversation = {
+    id: string;
+    user_id: number;
+    task_id: number;
+    title: string;
+    messages: Message [];
+}
+
+export type Message = {
+    id: string;
+    conversation_id: AgentConversation;
+    user_id: number;
+    task_id: number;
+    agent: string;
+    role: string;
+    content: string;
+}
+
 
 

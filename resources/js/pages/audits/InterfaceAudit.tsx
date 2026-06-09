@@ -11,11 +11,18 @@ import React from 'react';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
+import AgentChat from '@/components/audits/Agent/AgentChat';
 import AuditActionMenu from '@/components/audits/AuditActionMenu';
 import ConfigureAuditDialog from '@/components/audits/ConfigureAuditDialog';
 import { Button } from '@/components/ui/button';
 
-import type { StudyCase, Task, EvaluationPattern, Finding } from '@/types';
+import type {
+    StudyCase,
+    Task,
+    EvaluationPattern,
+    Finding,
+    Message,
+} from '@/types';
 
 
 type Props = {
@@ -23,6 +30,7 @@ type Props = {
     studyCase: StudyCase;
     task: Task;
     findings: Finding [];
+    messages: Message[];
 };
 
 
@@ -31,7 +39,7 @@ type Props = {
 
 
 
-const InterfaceAudit = ({ studyCase, task, evaluationPattern }: Props) => {
+const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props) => {
 
     const findings = task.findings;
 
@@ -123,28 +131,21 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern }: Props) => {
 
                 <div className="flex items-center gap-4">
                     <AuditActionMenu
-                        onExport={() =>
-                            exportTask(task.id)
-
-                        }
-                        onDelete={() =>
-                            deleteTask(task.id)
-                        }
-                        onReset={() =>
-                            resetAudit(task.id)
-                        }
+                        onExport={() => exportTask(task.id)}
+                        onDelete={() => deleteTask(task.id)}
+                        onReset={() => resetAudit(task.id)}
                     />
                 </div>
             </header>
 
-            <div className="flex h-screen overflow-hidden pt-16">
+            <div className="mt-16 flex h-[calc(100vh-4rem)] min-h-0 overflow-hidden">
                 <aside className="flex w-90 flex-col justify-between space-y-4 border-r border-border bg-card text-card-foreground">
                     <div className="flex max-h-3/4 flex-col space-y-3">
                         <div className="h-full">
                             <label className="block p-6 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
                                 Findings Index
                             </label>
-                            <div className="flex max-h-full overflow-y-scroll">
+                            <div className="flex max-h-full overflow-y-auto">
                                 <div className="h-fit w-full">
                                     {findings?.map((finding) => (
                                         <div
@@ -400,41 +401,64 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern }: Props) => {
                                 </h3>
 
                                 <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-                                    The interface audit has not started yet, or no issues have been detected.
-                                    Upload the required screenshots and start the audit to generate security and
-                                    human-factor findings for this task.
+                                    The interface audit has not started yet, or
+                                    no issues have been detected. Upload the
+                                    required screenshots and start the audit to
+                                    generate security and human-factor findings
+                                    for this task.
                                 </p>
                             </div>
                         )}
                     </div>
                 </main>
 
-                <aside className="flex w-96 flex-col border-l border-border bg-card text-card-foreground">
-                    <div className="flex border-b border-border">
-                        <div className="h-auto flex-1 rounded-none border-b-2 border-primary py-4 text-center text-sm font-bold text-primary">
+                <aside className="flex h-full min-h-0 w-120 shrink-0 flex-col border-l border-border bg-card text-card-foreground">
+                    <div className="shrink-0 border-b border-border">
+                        <div className="border-b-2 border-primary py-3 text-center text-sm font-bold text-primary">
                             Copilot
                         </div>
                     </div>
 
-                    <div className="flex grow flex-col overflow-y-auto">
-                        <div className="relative flex-grow space-y-4 overflow-y-auto p-4">
-                            {selectedFinding != null && (
-                                <div className="group rounded-xl border-2 border-primary/20 bg-primary/10 p-4 ring-4 ring-primary/10">
-                                    <div className="mb-3 flex items-start gap-3">
-                                        <span className="mt-0.5 rounded-md bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                    <div className="flex min-h-0 flex-1 flex-col gap-2 p-2">
+                        {selectedFinding === null ? (
+                            <div className="shrink-0 rounded-xl border border-dashed border-border bg-card-high/60 p-4 text-center">
+                                <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary dark:text-secondary">
+                                    <Bot className="size-5" />
+                                </div>
+
+                                <h4 className="text-sm font-bold text-foreground">
+                                    No context selected
+                                </h4>
+
+                                <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+                                    Select a finding and, optionally, an
+                                    evaluation pattern to provide contextual
+                                    information to the MORPHEUS Copilot.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="shrink-0 rounded-xl border border-primary/20 ring-2 ring-primary/10">
+                                <div className="shrink-0 rounded-xl border border-primary/20 bg-primary/10 p-3 ring-2 ring-primary/10">
+                                    <div className="flex items-start gap-2">
+                                        <span className="shrink-0 rounded-md bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
                                             F
                                             {selectedFinding.id
                                                 .toString()
                                                 .padStart(2, '0')}
                                         </span>
 
-                                        <div>
-                                            <h4 className="text-sm font-bold text-foreground">
+                                        <div className="min-w-0 flex-1">
+                                            <h4 className="truncate text-sm font-bold text-foreground">
                                                 {selectedFinding.title}
                                             </h4>
+
+                                            <p className="mt-1 max-h-12 overflow-y-auto text-xs leading-relaxed text-muted-foreground">
+                                                {selectedFinding.description}
+                                            </p>
                                         </div>
+
                                         <Button
-                                            className="absolute top-7 right-7 hidden size-6 items-center justify-center group-hover:flex"
+                                            className="size-6 shrink-0"
                                             size="icon"
                                             variant="ghost"
                                             onClick={() => {
@@ -448,82 +472,59 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern }: Props) => {
                                         </Button>
                                     </div>
 
-                                    <div className="rounded-lg border border-primary/20 bg-card/80 p-4 shadow-sm">
-                                        <div className="mb-2 flex items-center gap-2">
-                                            <Bot className="size-4 text-primary" />
+                                    {selectedEvaluationPattern !== null && (
+                                        <div className="mt-2 rounded-lg border border-border bg-card-high px-3 py-2">
+                                            <div className="flex items-start gap-2">
+                                                <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                                                    EP
+                                                    {selectedEvaluationPattern.id
+                                                        .toString()
+                                                        .padStart(2, '0')}
+                                                </span>
 
-                                            <span className="text-[10px] font-black tracking-widest text-primary uppercase">
-                                                Morpheus Copilot Summary
-                                            </span>
+                                                <div className="min-w-0 flex-1">
+                                                    <h5 className="truncate text-xs font-bold text-foreground">
+                                                        {
+                                                            selectedEvaluationPattern.title
+                                                        }
+                                                    </h5>
+
+                                                    <p className="mt-1 max-h-10 overflow-y-auto text-xs leading-relaxed text-muted-foreground">
+                                                        {
+                                                            selectedEvaluationPattern
+                                                                .pivot
+                                                                ?.description
+                                                        }
+                                                    </p>
+                                                </div>
+
+                                                <Button
+                                                    className="size-6 shrink-0"
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        setSelectedEvaluationPattern(
+                                                            null,
+                                                        )
+                                                    }
+                                                >
+                                                    <X className="size-4" />
+                                                </Button>
+                                            </div>
                                         </div>
-
-                                        <p className="text-xs leading-relaxed text-card-foreground-secondary">
-                                            {selectedFinding.description}
-                                        </p>
-                                    </div>
+                                    )}
                                 </div>
-                            )}
-                            {selectedEvaluationPattern != null && (
-                                <ChevronsDown className="size-5 w-full text-center transition-transform" />
-                            )}
-                            {selectedEvaluationPattern !== null && (
-                                <div className="group relative cursor-pointer rounded-xl border border-border p-4 opacity-60 transition-opacity hover:bg-muted/50 hover:opacity-100">
-                                    <div className="flex items-start gap-3">
-                                        <span className="mt-0.5 rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
-                                            EP
-                                            {selectedEvaluationPattern.id
-                                                .toString()
-                                                .padStart(2, '0')}
-                                        </span>
-                                        <Button
-                                            className="absolute top-1 right-1 hidden size-6 items-center justify-center group-hover:flex"
-                                            size="icon"
-                                            variant="ghost"
-                                            onClick={() => {
-                                                setSelectedEvaluationPattern(
-                                                    null,
-                                                );
-                                            }}
-                                        >
-                                            <X className="size-4" />
-                                        </Button>
-
-                                        <div>
-                                            <h4 className="text-sm font-bold text-foreground">
-                                                {
-                                                    selectedEvaluationPattern.title
-                                                }
-                                            </h4>
-
-                                            <p className="mt-1 truncate text-xs text-nowrap text-muted-foreground">
-                                                {
-                                                    selectedEvaluationPattern
-                                                        .pivot.description
-                                                }
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="border-t border-border bg-card p-4">
-                            <div className="relative">
-                                <input
-                                    className="w-full rounded-xl border border-input bg-input px-4 py-3 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
-                                    placeholder="Chiedi al Copilot..."
-                                    type="text"
-                                />
-
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute top-1.5 right-2 text-primary hover:bg-muted"
-                                >
-                                    <Send className="size-5" />
-                                </Button>
                             </div>
+                        )}
+
+                        <div className="flex min-h-0 flex-1 flex-col justify-end">
+                            <AgentChat
+                                task={task}
+                                messages={messages}
+                                className="max-h-full"
+                                selectedFinding={selectedFinding}
+                                selectedEP={selectedEvaluationPattern}
+                            />
                         </div>
                     </div>
                 </aside>

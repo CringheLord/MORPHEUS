@@ -2,12 +2,15 @@
 namespace App\Services;
 
 use App\Ai\Agents\MorpheusAgent;
+use App\Ai\Agents\TestAgent;
+use App\Models\AgentConversation;
 use App\Models\Artifact;
 use App\Models\EvaluationPattern;
 use App\Models\Finding;
 use App\Models\Task;
 use App\Models\User;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -26,11 +29,10 @@ use Laravel\Ai\Files\Image;
 #[MaxSteps(10)]
 #[MaxTokens(4096)]
 #[Temperature(0.7)]
-#[Timeout(120)]
 
 class MorpheusAIService
 {
-    public function providerMap ( string $provider )
+    public function providerMap(string $provider)
     {
         return match ($provider) {
             'openai' => Lab::OpenAI,
@@ -40,35 +42,38 @@ class MorpheusAIService
         };
     }
 
-    public function  agentNewRun ( User $user, string $provider, string $agent_model, array $evaluationPattern, Artifact $artifact, bool $isUrl, string $url, Task $task, string $message, bool $useCheapest  )
+    /**
+     * @throws \Throwable
+     */
+    public function startAudit(User $user, string $provider, string $agent_model, array $evaluationPatterns, Task $task)
     {
 
 
-        $user = Auth::user();
 
         Log::info("🚀 [MORPHEUS-AI] INIZIO Analisi per Task ID: {$task->id}");
 
-        if ($evaluationPattern == []) {
-            $evaluationPattern = Artifact::all();
+        if ($evaluationPatterns == []) {
+            $evaluationPatterns =  EvaluationPattern::all();
             Log::info("📋 [MORPHEUS-AI] Selected Evaluation Patterns: ALL");
-        }else {
-            Log::info("📋 [MORPHEUS-AI] Selected Evaluation Patterns: " . implode(', ', $evaluationPattern));
-            $evaluationPattern = EvaluationPattern::whereIn('id', $evaluationPattern)->get();
+        } else {
+            Log::info("📋 [MORPHEUS-AI] Selected Evaluation Patterns: " . implode(', ', $evaluationPatterns));
+            $evaluationPatterns = EvaluationPattern::whereIn('id', $evaluationPatterns)->get();
         }
 
-        if ($evaluationPattern->isEmpty()) {
+        if ($evaluationPatterns->isEmpty()) {
             Log::error("❌ [MORPHEUS-AI] Analisi interrupted: no evaluation patterns found in database.");
             return;
         }
 
-        $totalPatterns = $evaluationPattern->count();
+        $totalPatterns = $evaluationPatterns->count();
 
-        $initCache = [
-            'current' => 0,
-            'total' => $totalPatterns,
-            'message' => 'Preparation of immages and context...'
-        ];
-        Cache::put("task_{$task->id}_progress", $initCache, 600);
+        $this->updateAuditProgress(
+            task: $task,
+            status: 'running',
+            current: 0,
+            total: $totalPatterns,
+            message: 'Preparation of images and context...',
+        );
 
         $artifacts = $task->artifacts()->orderBy('created_at', 'asc')->get();
         $preparedArtifacts = [];
@@ -79,6 +84,7 @@ class MorpheusAIService
                 $preparedArtifacts[] = [
                     'image_number' => count($preparedArtifacts) + 1,
                     'artifact_id' => $artifact->id,
+                    'page_url' => $artifact->page_url,
                     'attachment' => Image::fromStorage(
                         $artifact->file_path,
                         disk: 'public',
@@ -95,14 +101,18 @@ class MorpheusAIService
 
         Finding::where('task_id', $task->id)->delete();
 
+        $conversation = null;
+        $conversationId = null;
 
-        foreach ($evaluationPattern as $idx => $pattern) {
+        foreach ($evaluationPatterns as $idx => $pattern) {
 
-            Cache::put("task_{$task->id}_progress", [
-                'current' => $idx + 1,
-                'total' => $totalPatterns,
-                'message' => "Analysing {$pattern->h_id}: {$pattern->title}"
-            ]);
+            $this->updateAuditProgress(
+                task: $task,
+                status: 'running',
+                current: $idx + 1,
+                total: $totalPatterns,
+                message: "Analysing {$pattern->h_id}: {$pattern->title}",
+            );
 
             Log::info("[MORPHEUS-AI] Analyzing {$pattern->h_id} (" . ($idx + 1) . "/{$totalPatterns})");
 
@@ -131,51 +141,71 @@ class MorpheusAIService
             $prompt .= "[TRIGGER/RULE]: {$pattern->audit_rule}\n";
             $prompt .= "[DETAIL]: {$pattern->trigger}\n";
 
-            $prompt .= "---PAGE URL---";
-            if ($isUrl) {
-                $prompt .= "2. URL: {$url}\n";
-            } else {
-                $prompt .= "2. No URL provided\n";
-            }
-
             $prompt .= "---RELATION >> IMAGE - ARTIFACT ID---";
             foreach ($preparedArtifacts as $preparedArtifact) {
                 $prompt .= "Image {$preparedArtifact['image_number']} = ARTIFACT_ID: {$preparedArtifact['artifact_id']}\n";
+                if ($preparedArtifact['page_url'] != null) {
+                    $prompt .= "Relative URL: {$preparedArtifact['page_url']}\n";
+                } else {
+                    $prompt .= "No URL available for this image.\n";
+                }
+                $prompt .= "----------------------\n";
             }
 
             $prompt .= "--- OUTPUT INSTRUCTIONS AND TEMPORAL AWARENESS ---
-1. SINGLE-IMAGE ANALYSIS: Look for the violation in EACH individual image, analyzing ONLY the portion of the screen that contains the interface.
-2. FLOW ANALYSIS (MULTI-STEP): Evaluate the user’s entire “journey.” If you notice an interaction problem distributed across multiple pages (e.g. an unnecessary process, loss of context between two steps), you MUST report it.
+                1. SINGLE-IMAGE ANALYSIS: Look for the violation in EACH individual image, analyzing ONLY the portion of the screen that contains the interface.
+                2. FLOW ANALYSIS (MULTI-STEP): Evaluate the user’s entire “journey.” If you notice an interaction problem distributed across multiple pages (e.g. an unnecessary process, loss of context between two steps), you MUST report it.
 
-WHERE SHOULD THE RED BOX BE PLACED?
-The coordinates (x, y, width, height), expressed as percentages, must be calculated over the ENTIRE IMAGE (the whole PDF page), so that the box is positioned correctly over the problematic UI element.
-If the error is a “FLOW ERROR,” draw a large red box (e.g. width 80, height 80) on the image representing the final climax of the issue.
 
-Se non trovi NESSUNA violazione, imposta violation_found: false e findings: [].";
+                if you DON'T find any violation, set violation_found: false and findings: [].";
 
 
             try {
-                $response =  (new MorpheusAgent)->forUser($user)->prompt(
-                    $prompt,
-                    attachments: $attachments,
-                    provider: $this->providerMap($provider),
-                    model: $agent_model,
-                );
-                $conversationId = $response->conversationId;
+                if ($conversationId === null) {
+                    $response = (new MorpheusAgent)
+                        ->forUser($user)
+                        ->prompt(
+                            $prompt,
+                            attachments: $attachments,
+                            provider: $this->providerMap("openai"),
+                            //model: $agent_model,
+                        );
+                    $conversationId = $response->conversationId;
 
-                if (isset($response['result']) && $response['evaluation_found']) {
+                    $conversation = AgentConversation::query()
+                        ->whereKey($conversationId)
+                        ->first();
+
+                    if ($conversation !== null) {
+                        $conversation->update([
+                            'task_id' => $task->id,
+                        ]);
+                    }
+                } else {
+                    $response = (new MorpheusAgent)
+                        ->continue($conversationId, as: $user,)
+                        ->prompt(
+                            $prompt,
+                            attachments: $attachments,
+                            provider: $this->providerMap($provider),
+                            //model: $agent_model,
+                        );
+                }
+                if (isset($response['result']) && ($response['violation_found'] ?? false)) {
                     $result = $response['result'];
 
-                    Finding::create([
-                        'study_case_id' => $studyCase->id,
+                    $finding = Finding::create([
+                        'title' => $result['title'],
+                        'description' => $result['description'],
+                        'task_id' => $task->id,
                         'artifact_id' => $result['artifact_id'],
-                        'evaluation_pattern_id' => $pattern->id,
-                        'visual_element_description' => $result['visual_element_description'],
                         'internal_reasoning' => $result['internal_reasoning'],
                         'pragmatic_explanation' => $result['pragmatic_explanation'],
+                        'impact' => $result['impact'],
                         'severity' => $result['severity'],
                         'executive_question' => $pattern->org_question,
                     ]);
+                    $finding->evaluationPatterns()->attach($pattern->id);
                     Log::info("🚨 [MORPHEUS-AI] Saved finding for {$pattern->h_id} on artifact {$result['artifact_id']}");
                 }
 
@@ -191,32 +221,133 @@ Se non trovi NESSUNA violazione, imposta violation_found: false e findings: []."
 //                    'executive_question' => $pattern->org_question,
 //                ]);
 
-            }catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 Log::error("❌ [MORPHEUS-AI] API ERROR for {$pattern->h_id}: " . $e->getMessage());
+
+                $this->updateAuditProgress(
+                    task: $task,
+                    status: 'running',
+                    current: $idx + 1,
+                    total: $totalPatterns,
+                    message: "Error on {$pattern->h_id}, continuing with next pattern...",
+                    error: str($e->getMessage())->limit(1000)->toString(),
+                );
+
+                continue;
             }
-
-            $task->update(['status' => 'completed']);
-            Cache::forget("task_{$task->id}_progress");
-            Log::info("🏁 [MORPHEUS-AI] Analysis completed.");
-
         }
 
+        if ($conversation !== null) {
+            $messages = $conversation->messages()->get();
 
+            foreach ($messages as $message) {
+                $message->update(['task_id' => $task->id]);
+            }
+        }
 
+        if ($conversation === null) {
+            Cache::forget("task_{$task->id}_progress");
 
+            Log::error("❌ [MORPHEUS-AI] Analysis failed: no conversation was created.");
+
+            return;
+        }
+
+        $task->forceFill([
+            'audit_status' => 'completed',
+            'audit_current' => $totalPatterns,
+            'audit_total' => $totalPatterns,
+            'audit_message' => 'Audit completed.',
+            'audit_error' => null,
+            'audit_completed_at' => now(),
+        ])->save();
+
+        Cache::put("task_{$task->id}_progress", [
+            'status' => 'completed',
+            'current' => $totalPatterns,
+            'total' => $totalPatterns,
+            'message' => 'Audit completed.',
+            'error' => null,
+        ], 3600);
+
+        Log::info("🏁 [MORPHEUS-AI] Analysis completed.");
 
     }
 
-    public function continueConversationt ( string $message, EvaluationPattern $evaluationPattern, Artifact $artifact, Task $task, $conversationId  ) {
+    private function updateAuditProgress(
+        Task $task,
+        string $status,
+        int $current,
+        int $total,
+        string $message,
+        ?string $error = null,
+    ): void {
+        Cache::put("task_{$task->id}_progress", [
+            'status' => $status,
+            'current' => $current,
+            'total' => $total,
+            'message' => $message,
+            'error' => $error,
+        ], 3600);
 
-        $user = Auth::user();
+        $task->forceFill([
+            'audit_status' => $status,
+            'audit_current' => $current,
+            'audit_total' => $total,
+            'audit_message' => $message,
+            'audit_error' => $error,
+        ])->save();
+    }
 
-        $response =  (new MorpheusAgent)
-            ->continue($conversationId, as: $user)
+    public function continueConversationt(User $user, Task $task, string $prompt, Finding $selectedFinding = null, EvaluationPattern $selectedEvaluationPattern = null)
+    {
+
+
+        $conversation = $task->conversation;
+
+        $initialPrompt = "The user is asking for more detailed information about the analysis you made.\n";
+        $initialPrompt .= "He may ask general question or more information relative to a violation you found and maybe on why you flagged as violation.\n";
+        if ($selectedFinding !== null) {
+            $initialPrompt .= "Selected finding for evaluation:\n";
+            $initialPrompt .= "[ID]: {$selectedFinding->id}\n";
+            $initialPrompt .= "[Artifact ID]: {$selectedFinding->artifact_id}\n";
+            $initialPrompt .= "[Title]: {$selectedFinding->title}\n";
+            $initialPrompt .= "[Description]: {$selectedFinding->description}\n";
+            $initialPrompt .= "[Attack Scenario]: {$selectedFinding->attack_scenario}\n";
+            $initialPrompt .= "[Impact]: {$selectedFinding->impact}\n";
+            $initialPrompt .= "[Severity]: {$selectedFinding->severity}\n";
+            $initialPrompt .= "The image/artifact relative to this finding will be provided as an attachment.\n\n";
+            $artifact = $selectedFinding->load('artifact');
+            $attachment = Image::fromStorage($artifact->file_path, disk: 'public');
+            if ($selectedEvaluationPattern !== null) {
+                $initialPrompt .= "Relative Evaluation Pattern:\n";
+                $initialPrompt .= "[ID]: {$selectedFinding->h_id}\n";
+                $initialPrompt .= "[TRIGGER/RULE]: {$selectedFinding->audit_rule}\n";
+                $initialPrompt .= "[DETAIL]: {$selectedFinding->trigger}\n\n";
+            }
+        }
+
+        $initialPrompt .= "User prompt:\n";
+        $initialPrompt .= $prompt;
+
+
+        ///////////////////////////////////////////////// STATIC MODEL PROVIDE TO MOVE TO CONTROLLER
+        $provider = $conversation->provider;
+        $model = $conversation->model;
+
+
+        $response = MorpheusAgent::make()
+            ->continue($conversation->id, as: $user)
             ->prompt(
-                $message
+                $initialPrompt,
+                attachments: [$attachment],
+                provider: $this->providerMap($provider),
+                model: $model,
             );
 
 
+        return response()->json([
+            'response' => $response['value'],
+        ]);
     }
 }

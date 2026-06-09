@@ -24,6 +24,27 @@ class TaskController extends Controller
             'studyCase',
         ]);
 
+        $messages = $task->conversation?->messages()
+            ->orderBy('created_at')
+            ->get()
+            ->map(function ($message) {
+                $content = $message->content;
+
+                $decoded = json_decode($content, true);
+
+                if (json_last_error() === JSON_ERROR_NONE && isset($decoded['value'])) {
+                    $content = $decoded['value'];
+                }
+
+                return [
+                    'id' => $message->id,
+                    'role' => $message->role,
+                    'content' => $content,
+                    'created_at' => $message->created_at,
+                ];
+            })
+            ->values() ?? collect();
+
         $studyCase = $task->studyCase;
         $findings = $task->findings();
         $evaluationPatterns = EvaluationPattern::with('humanFactor', 'uiTags')->get();
@@ -32,6 +53,7 @@ class TaskController extends Controller
             'studyCase' => $task->studyCase,
             'task' => $task,
             'evaluationPattern' => $evaluationPatterns,
+            'messages' => $messages,
         ]);
     }
 
@@ -148,6 +170,7 @@ class TaskController extends Controller
         $task->load(
         'findings',
                 'artifacts',
+                'conversation',
         );
 
         foreach ($task->artifacts as $artifact) {
@@ -155,8 +178,21 @@ class TaskController extends Controller
             $artifact->delete();
         }
         $task->findings()->delete();
+        $task->conversation->messages()->delete();
+        $task->conversation()->delete();
+
 
 
         return back()->with('success', 'Task reset successfully.');
     }
+
+    public function startAudit(Task $task, Request $request)
+    {
+        $response = AIController::haveConversation(request());
+
+        return back()->with('response', $response );
+    }
 }
+
+
+

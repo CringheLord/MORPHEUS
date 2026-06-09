@@ -27,4 +27,9 @@ class Task extends Model
     public function findings() {
         return $this->hasMany(Finding::class);
     }
+
+    public function conversation()
+    {
+        return $this->hasOne(AgentConversation::class);
+    }
 }

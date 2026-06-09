@@ -33,6 +33,20 @@ class ArtifactController extends Controller
         return back()->with('success', 'Artifacts uploaded successfully.');
     }
 
+    public function updatePageUrl(Request $request, Task $task, Artifact $artifact)
+    {
+        $request->validate([
+            'page_url' => ['required', 'url'],
+        ]);
+
+        $artifact->update([
+            'page_url' => $request->input('page_url'),
+        ]);
+
+        return back()->with('success', 'Page URL updated successfully.');
+
+    }
+
     public function destroy(Request $request, Task $task, Artifact $artifact)
     {
         abort_unless((int) $artifact->task_id === (int) $task->id, 404);

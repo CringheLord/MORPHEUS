@@ -17,6 +17,9 @@ class Finding extends Model
         'pragmatic_explanation',
         'internal_reasoning',
         'visual_element_description',
+        'study_case_id',
+        'description',
+        'impact',
     ];
 
     public function task()

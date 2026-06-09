@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use OpenAI;
 
-class MorpheusAiService
+class MorpheusAiService_temp
 {
     protected $client;
 

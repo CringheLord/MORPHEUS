@@ -12,6 +12,7 @@ class Artifact extends Model
         'image_url',
         'file_path',
         'study_case_id',
+        'page_url',
     ];
 
     public function studyCase() {

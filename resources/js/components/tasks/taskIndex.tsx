@@ -146,7 +146,7 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                                       ? 'Novice'
                                                       : 'Critical Operator'}
                                                 <ChevronRight className="overflow-hidden text-ellipsis whitespace-nowrap text-card-foreground-secondary" />
-                                                <span className="text-sm text-card-foreground overflow-hidden text-ellipsis whitespace-nowrap max-w-62.5">
+                                                <span className="max-w-62.5 overflow-hidden text-sm text-ellipsis whitespace-nowrap text-card-foreground">
                                                     {task.user_role}
                                                 </span>
                                             </span>
@@ -235,12 +235,16 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                             );
                         })}
                         {tasks.total <= 3 && (
-                            <div
-                                className={cn(
-                                    'w-full',
-                                    tasks.total <= 2 ? 'h-[15vh]' : 'h-[10vh]',
-                                )}
-                            />
+                            <tr>
+                                <td
+                                    colSpan={7}
+                                    className={cn(
+                                        tasks.total <= 2
+                                            ? 'h-[15vh]'
+                                            : 'h-[10vh]',
+                                    )}
+                                />
+                            </tr>
                         )}
                         <tr className="h-15">
                             <td
