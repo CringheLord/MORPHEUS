@@ -66,7 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //Morpheus Agent
     Route::post('tasks/{task}/run-analysis', [AIController::class, 'startAudit'])->name("tasks.run-analysis");
     Route::post('tasks/{task}/morpheus-agent', [AIController::class, 'continueConversation'])->name('tasks.morpheus-agent');
-
+    Route::get('tasks/{task}/audit-progress', [TaskController::class, 'auditProgress'])->name('task.audit-progress');
 
     Route::put('questionnaires/{questionnaire}/share', [QuestionnairesController::class, 'share'])
         ->name('questionnaires.share');

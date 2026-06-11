@@ -400,7 +400,7 @@ function HighlightedBlock({
                 {label}
             </h3>
 
-            <p className="text-sm leading-7 font-semibold whitespace-pre-line text-foreground italic">
+            <p className="text-sm leading-7 font-semibold whitespace-pre-line dark:text-foreground italic">
                 {value}
             </p>
         </div>

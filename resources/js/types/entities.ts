@@ -89,6 +89,11 @@ export type Task = {
     conversation?: AgentConversation | null;
     findings?: Finding[] | null;
     artifacts?: Artifact[] | null;
+    audit_message: string;
+    audit_error: string;
+    audit_status: 'running' | 'idle' | 'completed' | 'failed' | 'completed_with_errors';
+    audit_current: number;
+    audit_total: number;
 };
 
 export type Artifact = {
@@ -150,6 +155,10 @@ export type Finding = {
     attack_scenario: string;
     impact: string;
     severity: string;
+
+    internal_reasoning: string;
+    pragmatic_explanation: string;
+    executive_question: string;
 
     evaluation_patterns?: Array<
         EvaluationPattern & {

@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
-import type { Artifact, EvaluationPattern, Task } from '@/types';
+import type { Artifact, EvaluationPattern, HumanFactor, Task } from '@/types';
 
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -32,6 +32,7 @@ type Props = {
     onClose: () => void;
     task: Task;
     evaluationPatterns: EvaluationPattern[];
+    humanFactors: HumanFactor[];
 };
 
 export default function ConfigureAuditDialog({
@@ -39,6 +40,7 @@ export default function ConfigureAuditDialog({
     onClose,
     task,
     evaluationPatterns,
+    humanFactors
 }: Props) {
     const [activeTab, setActiveTab] = useState<
         'screenshots' | 'evaluation_patterns' | 'setup'
@@ -59,6 +61,9 @@ export default function ConfigureAuditDialog({
     const [artifactPageUrlDrafts, setArtifactPageUrlDrafts] = useState<Record<number, string>>({});
 
     const [selectedEvaluationPatternIds, setSelectedEvaluationPatternIds] = useState<number[]>([]);
+
+    const [epFilter, setEpFilter] = useState<string>('all');
+
 
     const triggerFileInput = () => {
         fileInputRef.current?.click();
@@ -283,7 +288,6 @@ export default function ConfigureAuditDialog({
             },
         );
     };
-
 
 
     const artifacts = task.artifacts ?? [];
@@ -600,7 +604,14 @@ export default function ConfigureAuditDialog({
                                             Selected
                                         </span>
 
-                                        <span className="text-2xl font-black text-primary"></span>
+                                        <select onChange={(e) => setEpFilter(e.target.value)} className="bg-card">
+                                            <option value={'all'}>All</option>
+                                            {humanFactors.map((humanFactor) => (
+                                                <option key={humanFactor.id} value={humanFactor.id}>
+                                                    {humanFactor.name}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
 
@@ -610,6 +621,7 @@ export default function ConfigureAuditDialog({
                                             selectedEvaluationPatternIds.includes(
                                                 pattern.id,
                                             );
+                                        const isFiltered = epFilter === "all" || epFilter === pattern.human_factor_id.toString();
 
                                         return (
                                             <button
@@ -624,7 +636,8 @@ export default function ConfigureAuditDialog({
                                                     selected
                                                         ? 'border-primary bg-primary/10 shadow-sm'
                                                         : 'border-border bg-card hover:border-primary/60 hover:bg-card-high'
-                                                }`}
+                                                }
+                                                ${!isFiltered && 'hidden'}`}
                                             >
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div>

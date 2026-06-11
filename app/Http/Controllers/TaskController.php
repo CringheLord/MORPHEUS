@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EvaluationPattern;
+use App\Models\HumanFactor;
 use App\Models\StudyCase;
 use App\Models\Task;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ class TaskController extends Controller
             'artifacts',
             'studyCase',
         ]);
+
+        $humanFactors = HumanFactor::all();
 
         $messages = $task->conversation?->messages()
             ->orderBy('created_at')
@@ -52,6 +55,7 @@ class TaskController extends Controller
         return Inertia::render('audits/InterfaceAudit', [
             'studyCase' => $task->studyCase,
             'task' => $task,
+            'humanFactors' => $humanFactors,
             'evaluationPattern' => $evaluationPatterns,
             'messages' => $messages,
         ]);
@@ -191,6 +195,11 @@ class TaskController extends Controller
         $response = AIController::haveConversation(request());
 
         return back()->with('response', $response );
+    }
+
+    function auditProgress ()
+    {
+
     }
 }
 

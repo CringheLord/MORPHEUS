@@ -27,7 +27,7 @@ import type { LucideIcon } from 'lucide-react';
 
 import { useState } from 'react';
 
-import HeuristicDetailDialog from '@/components/evaluationPatterns/evaluationPatternDetail';
+import EPDetailDialog from '@/components/evaluationPatterns/evaluationPatternDetail';
 
 import { Button } from '@/components/ui/button';
 
@@ -139,7 +139,7 @@ const EvaluationPatternShow = ({ evaluationPattern }: Props) => {
                     </div>
                 </div>
             </article>
-            <HeuristicDetailDialog
+            <EPDetailDialog
                 evaluationPattern={evaluationPattern}
                 open={selectedEvaluationPattern !== null}
                 onOpenChange={(open) => {

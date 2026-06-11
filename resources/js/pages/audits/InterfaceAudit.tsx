@@ -1,33 +1,45 @@
 import { router } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 
-import { Bot, Bolt, ChevronsLeft, Send, CopyPlus, Info, X, ChevronsDown } from 'lucide-react';
+import {
+    Bot,
+    Bolt,
+    ChevronsLeft,
+    Info,
+    X,
+    SquareArrowOutUpRight,
+} from 'lucide-react';
 
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
-import {  useState, useMemo, useRef } from 'react';
+import {  useState, useRef } from 'react';
 
 import React from 'react';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
+
 import AgentChat from '@/components/audits/Agent/AgentChat';
 import AuditActionMenu from '@/components/audits/AuditActionMenu';
 import ConfigureAuditDialog from '@/components/audits/ConfigureAuditDialog';
+import EvaluationPatternDetailDialog from '@/components/evaluationPatterns/evaluationPatternDetail';
 import { Button } from '@/components/ui/button';
+import { useAuditProgress } from '@/hooks/use-audit-progress';
+
 
 import type {
     StudyCase,
     Task,
     EvaluationPattern,
     Finding,
-    Message,
+    Message, HumanFactor,
 } from '@/types';
 
 
 type Props = {
     evaluationPattern: EvaluationPattern [];
     studyCase: StudyCase;
+    humanFactors: HumanFactor[];
     task: Task;
     findings: Finding [];
     messages: Message[];
@@ -39,7 +51,7 @@ type Props = {
 
 
 
-const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props) => {
+const InterfaceAudit = ({ studyCase, task, humanFactors, evaluationPattern, messages }: Props) => {
 
     const findings = task.findings;
 
@@ -51,7 +63,7 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
 
     const findingRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
-
+    const [openEP, setOpenEP] = useState<EvaluationPattern | null>(null);
 
     const scrollTo = (finding: Finding) => {
 
@@ -95,6 +107,28 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
         window.open(`/tasks/${taskId}/report`);
     }
 
+
+
+    const auditProgress = useAuditProgress({
+        taskId: task.id,
+        initialProgress: {
+            status: task.audit_status ?? 'idle',
+            current: task.audit_current ?? 0,
+            total: task.audit_total ?? 0,
+            message: task.audit_message ?? null,
+            error: task.audit_error ?? null,
+            findings_count: findings.length,
+        },
+    });
+
+/*
+    const isAuditRunning = auditProgress.status === 'running';
+
+    const progressPercentage =
+        auditProgress.total > 0
+            ? Math.round((auditProgress.current / auditProgress.total) * 100)
+            : 0;
+*/
 
     return (
         <div className="bg-background text-foreground">
@@ -225,7 +259,7 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                 <div className="mb-5 flex items-start justify-between gap-6">
                                     <div className="min-w-0">
                                         <span
-                                            className={`text-xs font-bold text-muted-foreground ${selectedFinding?.id === finding.id ? 'text-primary-foreground/80' : ``}`}
+                                            className={`text-xs font-bold text-muted-foreground ${selectedFinding?.id === finding.id ? 'text-card-foreground dark:text-primary-foreground/80' : ``}`}
                                         >
                                             Finding F
                                             {finding.id
@@ -237,7 +271,7 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                             className={`mt-1 text-xl font-bold ${
                                                 selectedFinding?.id ===
                                                 finding.id
-                                                    ? 'text-primary-foreground'
+                                                    ? 'text-primary dark:text-primary-foreground'
                                                     : 'text-foreground'
                                             }`}
                                         >
@@ -254,6 +288,9 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                                             <div
                                                                 key={pattern.id}
                                                                 className="group relative inline-flex"
+                                                                title={
+                                                                    finding.internal_reasoning
+                                                                }
                                                             >
                                                                 <div
                                                                     onClick={() => {
@@ -271,12 +308,28 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                                                             : ''
                                                                     }`}
                                                                 >
-                                                                    <Info
-                                                                        className={`size-4 text-card-foreground transition-colors ${
+                                                                    <SquareArrowOutUpRight
+                                                                        className={`mr-2 size-5 cursor-pointer transition-colors hover:text-secondary ${
                                                                             selectedEvaluationPattern?.id ===
                                                                             pattern.id
-                                                                                ? 'text-primary dark:text-secondary'
-                                                                                : ''
+                                                                                ? 'text-primary-foreground dark:text-secondary'
+                                                                                : 'text-card-foreground'
+                                                                        }`}
+                                                                        onClick={(
+                                                                            e,
+                                                                        ) => {
+                                                                            e.preventDefault();
+                                                                            setOpenEP(
+                                                                                pattern,
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                    <Info
+                                                                        className={`size-4 transition-colors ${
+                                                                            selectedEvaluationPattern?.id ===
+                                                                            pattern.id
+                                                                                ? 'text-primary-foreground dark:text-secondary'
+                                                                                : 'text-card-foreground'
                                                                         }`}
                                                                     />
                                                                     {'EP'}
@@ -302,6 +355,28 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                                                         }
                                                                     </div>
                                                                 )}
+                                                                <EvaluationPatternDetailDialog
+                                                                    evaluationPattern={
+                                                                        pattern
+                                                                    }
+                                                                    open={
+                                                                        openEP !==
+                                                                            null &&
+                                                                        openEP.id ===
+                                                                            pattern.id
+                                                                    }
+                                                                    onOpenChange={(
+                                                                        open,
+                                                                    ) => {
+                                                                        if (
+                                                                            !open
+                                                                        ) {
+                                                                            setOpenEP(
+                                                                                null,
+                                                                            );
+                                                                        }
+                                                                    }}
+                                                                />
                                                             </div>
                                                         ),
                                                     )}
@@ -309,22 +384,46 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                             )}
                                     </div>
 
-                                    <span className="shrink-0 rounded-full bg-destructive px-3 py-1 text-xs font-bold text-destructive-foreground capitalize shadow-xl">
-                                        {finding.severity || 'unknown'}
-                                    </span>
+                                    {finding.severity === 'high' ? (
+                                        <span className="shrink-0 rounded-full bg-destructive px-3 py-1 text-xs font-bold text-card-foreground capitalize shadow-xl dark:text-destructive-foreground">
+                                            {finding.severity || 'unknown'}
+                                        </span>
+                                    ) : finding.severity === 'medium' ? (
+                                        <span className="shrink-0 rounded-full bg-alert px-3 py-1 text-xs font-bold text-alert-foreground capitalize shadow-xl">
+                                            {finding.severity || 'unknown'}
+                                        </span>
+                                    ) : (
+                                        <span className="bg-color-chart-2 text-color-chart-2/10 shrink-0 rounded-full px-3 py-1 text-xs font-bold capitalize shadow-xl">
+                                            {finding.severity || 'unknown'}
+                                        </span>
+                                    )}
                                 </div>
 
-                                {finding.description && (
-                                    <div className="rounded-lg bg-muted p-4">
-                                        <h3 className="mb-1 text-sm font-bold text-foreground">
-                                            Description
-                                        </h3>
+                                <div className="flex flex-row gap-4">
+                                    {finding.description && (
+                                        <div className="rounded-lg bg-primary p-4">
+                                            <h3 className="mb-1 text-sm font-bold text-primary-foreground">
+                                                Description
+                                            </h3>
 
-                                        <p className="text-sm leading-relaxed text-muted-foreground">
-                                            {finding.description}
-                                        </p>
-                                    </div>
-                                )}
+                                            <p className="text-sm leading-relaxed text-primary-foreground">
+                                                {finding.description}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {finding.pragmatic_explanation && (
+                                        <div className="rounded-lg bg-muted p-4">
+                                            <h3 className="mb-1 text-sm font-bold text-foreground">
+                                                Explanation
+                                            </h3>
+
+                                            <p className="text-sm leading-relaxed text-muted-foreground">
+                                                {finding.pragmatic_explanation}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/*finding.pivot?.description && (
                                     <div className="mt-4 rounded-lg border border-border bg-background p-4">
@@ -351,13 +450,25 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                 )}
 
                                 {finding.impact && (
-                                    <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive p-4">
-                                        <h3 className="mb-1 text-sm font-bold text-foreground">
+                                    <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/70 p-4 dark:bg-destructive">
+                                        <h3 className="mb-1 text-sm font-bold dark:text-foreground">
                                             Impact
                                         </h3>
 
-                                        <p className="text-sm leading-relaxed text-muted-foreground">
+                                        <p className="text-sm leading-relaxed text-shadow-accent dark:text-muted-foreground">
                                             {finding.impact}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {finding.executive_question && (
+                                    <div className="mt-4 rounded-lg bg-muted p-4">
+                                        <h3 className="mb-1 text-sm font-bold text-foreground">
+                                            Executive Question
+                                        </h3>
+
+                                        <p className="text-sm leading-relaxed text-muted-foreground">
+                                            {finding.executive_question}
                                         </p>
                                     </div>
                                 )}
@@ -394,7 +505,22 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                 )}
                             </div>
                         ))}
-                        {findings.length === 0 && (
+                        {/*{isAuditRunning ? (
+                            <ProgressStatusCard
+                                status={auditProgress.status}
+                                current={auditProgress.current}
+                                total={auditProgress.total}
+                                message={
+                                    auditProgress.message ??
+                                    'Analysing evaluation patterns...'
+                                }
+                                error={auditProgress.error}
+                                size="lg"
+                                loadingVariant={
+                                    auditProgress.total > 0 ? 'both' : 'dots'
+                                }
+                            />
+                        ) : findings.length === 0 ? (
                             <div className="rounded-3xl border border-dashed border-border bg-card-high p-8 text-center">
                                 <h3 className="font-display text-lg font-black tracking-tight text-secondary uppercase">
                                     No findings yet
@@ -408,7 +534,7 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                                     for this task.
                                 </p>
                             </div>
-                        )}
+                        ) : null}*/}
                     </div>
                 </main>
 
@@ -535,6 +661,7 @@ const InterfaceAudit = ({ studyCase, task, evaluationPattern, messages }: Props)
                 onClose={() => setIsConfigureAuditOpen(false)}
                 task={task}
                 evaluationPatterns={evaluationPattern}
+                humanFactors={humanFactors}
             />
         </div>
     );
