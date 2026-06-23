@@ -19,9 +19,10 @@ type Props = {
     human_factors: HumanFactor[];
     tags: uiTag[];
     filters: Filters;
+    tasksCount: number;
 };
 
-export default function EPIndex({ evaluation_patterns, human_factors, filters, tags }: Props) {
+export default function EPIndex({ evaluation_patterns, human_factors, filters, tags, tasksCount }: Props) {
     const inventoryRef = useRef<HTMLDivElement>(null);
 
     const heuristicsAnimationKey = evaluation_patterns.map((ep) => ep.id).join('-');
@@ -249,6 +250,7 @@ export default function EPIndex({ evaluation_patterns, human_factors, filters, t
                                     <EvaluationPatternShow
                                         key={ep.id}
                                         evaluationPattern={ep}
+                                        tasksCount={tasksCount}
                                     />
                                 ))
                             ) : (

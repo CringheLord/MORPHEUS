@@ -37,6 +37,7 @@ import type { EvaluationPattern } from '@/types';
 
 type Props = {
     evaluationPattern: EvaluationPattern;
+    tasksCount: number;
 };
 
 const iconMap: Record<string, LucideIcon> = {
@@ -63,13 +64,17 @@ const iconMap: Record<string, LucideIcon> = {
     Hexagon: Hexagon,
 };
 
-const EvaluationPatternShow = ({ evaluationPattern }: Props) => {
+const EvaluationPatternShow = ({ evaluationPattern, tasksCount }: Props) => {
     const Icon = iconMap[evaluationPattern.icon] ?? HelpCircle;
     const HFIcon = iconMap[evaluationPattern.human_factor.icon];
     const uiTags = evaluationPattern.ui_tags ?? [];
 
     const [selectedEvaluationPattern, setSelectedEvaluationPattern] =
         useState<EvaluationPattern | null>(null);
+
+    const incidence = evaluationPattern.findings_count / tasksCount;
+
+
 
     return (
         <>
@@ -122,7 +127,7 @@ const EvaluationPatternShow = ({ evaluationPattern }: Props) => {
                                 Incidence
                             </p>
                             <p className="text-sm font-bold text-foreground">
-                                {evaluationPattern.incidence_rate ?? 0}%
+                                {incidence ?? 0}%
                             </p>
                         </div>
                         <Button

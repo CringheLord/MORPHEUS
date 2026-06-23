@@ -19,6 +19,7 @@ import React from 'react';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 
+import  AuditProgressStatusCard  from '@/components/audit-progress-status-card';
 import AgentChat from '@/components/audits/Agent/AgentChat';
 import AuditActionMenu from '@/components/audits/AuditActionMenu';
 import ConfigureAuditDialog from '@/components/audits/ConfigureAuditDialog';
@@ -107,8 +108,6 @@ const InterfaceAudit = ({ studyCase, task, humanFactors, evaluationPattern, mess
         window.open(`/tasks/${taskId}/report`);
     }
 
-
-
     const auditProgress = useAuditProgress({
         taskId: task.id,
         initialProgress: {
@@ -121,6 +120,9 @@ const InterfaceAudit = ({ studyCase, task, humanFactors, evaluationPattern, mess
         },
     });
 
+
+    const isAuditActive =
+        auditProgress.status === 'queued' || auditProgress.status === 'running';
 /*
     const isAuditRunning = auditProgress.status === 'running';
 
@@ -243,189 +245,220 @@ const InterfaceAudit = ({ studyCase, task, humanFactors, evaluationPattern, mess
 
                 <main className="flex grow flex-col items-center overflow-y-scroll bg-muted p-8">
                     <div className="w-full max-w-5xl space-y-8 rounded-xl p-4">
-                        {findings?.map((finding) => (
-                            <div
-                                key={finding.id}
-                                ref={(element) => {
-                                    findingRefs.current[finding.id] = element;
-                                }}
-                                className={`scroll-mt-24 rounded-xl border bg-card p-6 shadow-xl backdrop-blur-md transition-all ${
-                                    selectedFinding?.id === finding.id
-                                        ? 'border-primary bg-primary/5 ring-2 ring-primary/70 dark:border-secondary dark:bg-primary dark:ring-secondary/20'
-                                        : 'border-border bg-card'
-                                }`}
-                                onClick={() => scrollTo(finding)}
-                            >
-                                <div className="mb-5 flex items-start justify-between gap-6">
-                                    <div className="min-w-0">
-                                        <span
-                                            className={`text-xs font-bold text-muted-foreground ${selectedFinding?.id === finding.id ? 'text-card-foreground dark:text-primary-foreground/80' : ``}`}
-                                        >
-                                            Finding F
-                                            {finding.id
-                                                .toString()
-                                                .padStart(2, '0')}
-                                        </span>
+                        {isAuditActive && (
+                            <AuditProgressStatusCard
+                                status={auditProgress.status}
+                                current={auditProgress.current}
+                                total={auditProgress.total}
+                                message={
+                                    auditProgress.message ??
+                                    'Analysing evaluation patterns...'
+                                }
+                                error={auditProgress.error}
+                                size="lg"
+                                loadingVariant={
+                                    auditProgress.total > 0 ? 'line' : 'dots'
+                                }
+                            />
+                        )}
 
-                                        <h2
-                                            className={`mt-1 text-xl font-bold ${
-                                                selectedFinding?.id ===
-                                                finding.id
-                                                    ? 'text-primary dark:text-primary-foreground'
-                                                    : 'text-foreground'
-                                            }`}
-                                        >
-                                            {finding.title ||
-                                                'Untitled finding'}
-                                        </h2>
+                        {findings.length > 0 ? (
+                            findings.map((finding) => (
+                                <div
+                                    key={finding.id}
+                                    ref={(element) => {
+                                        findingRefs.current[finding.id] =
+                                            element;
+                                    }}
+                                    className={`scroll-mt-24 rounded-xl border bg-card p-6 shadow-xl backdrop-blur-md transition-all ${
+                                        selectedFinding?.id === finding.id
+                                            ? 'border-primary bg-primary/5 ring-2 ring-primary/70 dark:border-secondary dark:bg-primary dark:ring-secondary/20'
+                                            : 'border-border bg-card'
+                                    }`}
+                                    onClick={() => scrollTo(finding)}
+                                >
 
-                                        {finding.evaluation_patterns &&
-                                            finding.evaluation_patterns.length >
-                                                0 && (
-                                                <div className="mt-3 flex flex-wrap gap-2">
-                                                    {finding.evaluation_patterns.map(
-                                                        (pattern) => (
-                                                            <div
-                                                                key={pattern.id}
-                                                                className="group relative inline-flex"
-                                                                title={
-                                                                    finding.internal_reasoning
-                                                                }
-                                                            >
+                                    <div className="mb-5 flex items-start justify-between gap-6">
+                                        <div className="min-w-0">
+                                            <span
+                                                className={`text-xs font-bold text-muted-foreground ${selectedFinding?.id === finding.id ? 'text-card-foreground dark:text-primary-foreground/80' : ``}`}
+                                            >
+                                                Finding F
+                                                {finding.id
+                                                    .toString()
+                                                    .padStart(2, '0')}
+                                            </span>
+
+                                            <h2
+                                                className={`mt-1 text-xl font-bold ${
+                                                    selectedFinding?.id ===
+                                                    finding.id
+                                                        ? 'text-primary dark:text-primary-foreground'
+                                                        : 'text-foreground'
+                                                }`}
+                                            >
+                                                {finding.title ||
+                                                    'Untitled finding'}
+                                            </h2>
+
+                                            {finding.evaluation_patterns &&
+                                                finding.evaluation_patterns
+                                                    .length > 0 && (
+                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                        {finding.evaluation_patterns.map(
+                                                            (pattern) => (
                                                                 <div
-                                                                    onClick={() => {
-                                                                        setSelectedFinding(
-                                                                            finding,
-                                                                        );
-                                                                        setSelectedEvaluationPattern(
-                                                                            pattern,
-                                                                        );
-                                                                    }}
-                                                                    className={`flex cursor-default flex-row items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground transition-colors ${
-                                                                        selectedEvaluationPattern?.id ===
+                                                                    key={
                                                                         pattern.id
-                                                                            ? 'border-primary bg-primary text-primary-foreground ring-4 ring-secondary/50'
-                                                                            : ''
-                                                                    }`}
+                                                                    }
+                                                                    className="group relative inline-flex"
+                                                                    title={
+                                                                        finding.internal_reasoning
+                                                                    }
                                                                 >
-                                                                    <SquareArrowOutUpRight
-                                                                        className={`mr-2 size-5 cursor-pointer transition-colors hover:text-secondary ${
-                                                                            selectedEvaluationPattern?.id ===
-                                                                            pattern.id
-                                                                                ? 'text-primary-foreground dark:text-secondary'
-                                                                                : 'text-card-foreground'
-                                                                        }`}
-                                                                        onClick={(
-                                                                            e,
-                                                                        ) => {
-                                                                            e.preventDefault();
-                                                                            setOpenEP(
+                                                                    <div
+                                                                        onClick={() => {
+                                                                            setSelectedFinding(
+                                                                                finding,
+                                                                            );
+                                                                            setSelectedEvaluationPattern(
                                                                                 pattern,
                                                                             );
                                                                         }}
-                                                                    />
-                                                                    <Info
-                                                                        className={`size-4 transition-colors ${
+                                                                        className={`flex cursor-default flex-row items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground transition-colors ${
                                                                             selectedEvaluationPattern?.id ===
                                                                             pattern.id
-                                                                                ? 'text-primary-foreground dark:text-secondary'
-                                                                                : 'text-card-foreground'
+                                                                                ? 'border-primary bg-primary text-primary-foreground ring-4 ring-secondary/50'
+                                                                                : ''
                                                                         }`}
-                                                                    />
-                                                                    {'EP'}
-                                                                    {pattern.id
-                                                                        .toString()
-                                                                        .padStart(
-                                                                            2,
-                                                                            '0',
-                                                                        )}{' '}
-                                                                    -{' '}
-                                                                    {
-                                                                        pattern.title
-                                                                    }
-                                                                </div>
-
-                                                                {pattern.pivot
-                                                                    ?.description && (
-                                                                    <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 hidden w-72 -translate-x-1/2 rounded-lg border border-border bg-card p-3 text-xs leading-relaxed text-card-foreground shadow-xl group-hover:block">
+                                                                    >
+                                                                        <SquareArrowOutUpRight
+                                                                            className={`mr-2 size-5 cursor-pointer transition-colors hover:text-secondary ${
+                                                                                selectedEvaluationPattern?.id ===
+                                                                                pattern.id
+                                                                                    ? 'text-primary-foreground dark:text-secondary'
+                                                                                    : 'text-card-foreground'
+                                                                            }`}
+                                                                            onClick={(
+                                                                                e,
+                                                                            ) => {
+                                                                                e.preventDefault();
+                                                                                setOpenEP(
+                                                                                    pattern,
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                        <Info
+                                                                            className={`size-4 transition-colors ${
+                                                                                selectedEvaluationPattern?.id ===
+                                                                                pattern.id
+                                                                                    ? 'text-primary-foreground dark:text-secondary'
+                                                                                    : 'text-card-foreground'
+                                                                            }`}
+                                                                        />
                                                                         {
-                                                                            pattern
-                                                                                .pivot
-                                                                                .description
+                                                                            'EP'
+                                                                        }
+                                                                        {pattern.id
+                                                                            .toString()
+                                                                            .padStart(
+                                                                                2,
+                                                                                '0',
+                                                                            )}{' '}
+                                                                        -{' '}
+                                                                        {
+                                                                            pattern.title
                                                                         }
                                                                     </div>
-                                                                )}
-                                                                <EvaluationPatternDetailDialog
-                                                                    evaluationPattern={
-                                                                        pattern
-                                                                    }
-                                                                    open={
-                                                                        openEP !==
-                                                                            null &&
-                                                                        openEP.id ===
-                                                                            pattern.id
-                                                                    }
-                                                                    onOpenChange={(
-                                                                        open,
-                                                                    ) => {
-                                                                        if (
-                                                                            !open
-                                                                        ) {
-                                                                            setOpenEP(
-                                                                                null,
-                                                                            );
+
+                                                                    {pattern
+                                                                        .pivot
+                                                                        ?.description && (
+                                                                        <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 hidden w-72 -translate-x-1/2 rounded-lg border border-border bg-card p-3 text-xs leading-relaxed text-card-foreground shadow-xl group-hover:block">
+                                                                            {
+                                                                                pattern
+                                                                                    .pivot
+                                                                                    .description
+                                                                            }
+                                                                        </div>
+                                                                    )}
+                                                                    <EvaluationPatternDetailDialog
+                                                                        evaluationPattern={
+                                                                            pattern
                                                                         }
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        ),
-                                                    )}
-                                                </div>
-                                            )}
+                                                                        open={
+                                                                            openEP !==
+                                                                                null &&
+                                                                            openEP.id ===
+                                                                                pattern.id
+                                                                        }
+                                                                        onOpenChange={(
+                                                                            open,
+                                                                        ) => {
+                                                                            if (
+                                                                                !open
+                                                                            ) {
+                                                                                setOpenEP(
+                                                                                    null,
+                                                                                );
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                )}
+                                        </div>
+
+                                        {finding.severity === 'high' ? (
+                                            <span className="shrink-0 rounded-full bg-destructive px-3 py-1 text-xs font-bold text-card-foreground capitalize shadow-xl dark:text-destructive-foreground">
+                                                {finding.severity ||
+                                                    'unknown'}
+                                            </span>
+                                        ) : finding.severity ===
+                                          'medium' ? (
+                                            <span className="shrink-0 rounded-full bg-alert px-3 py-1 text-xs font-bold text-alert-foreground capitalize shadow-xl">
+                                                {finding.severity ||
+                                                    'unknown'}
+                                            </span>
+                                        ) : (
+                                            <span className="bg-color-chart-2 text-color-chart-2/10 shrink-0 rounded-full px-3 py-1 text-xs font-bold capitalize shadow-xl">
+                                                {finding.severity ||
+                                                    'unknown'}
+                                            </span>
+                                        )}
                                     </div>
 
-                                    {finding.severity === 'high' ? (
-                                        <span className="shrink-0 rounded-full bg-destructive px-3 py-1 text-xs font-bold text-card-foreground capitalize shadow-xl dark:text-destructive-foreground">
-                                            {finding.severity || 'unknown'}
-                                        </span>
-                                    ) : finding.severity === 'medium' ? (
-                                        <span className="shrink-0 rounded-full bg-alert px-3 py-1 text-xs font-bold text-alert-foreground capitalize shadow-xl">
-                                            {finding.severity || 'unknown'}
-                                        </span>
-                                    ) : (
-                                        <span className="bg-color-chart-2 text-color-chart-2/10 shrink-0 rounded-full px-3 py-1 text-xs font-bold capitalize shadow-xl">
-                                            {finding.severity || 'unknown'}
-                                        </span>
-                                    )}
-                                </div>
+                                        <div className="flex flex-row gap-4">
+                                            {finding.description && (
+                                                <div className="rounded-lg bg-primary p-4">
+                                                    <h3 className="mb-1 text-sm font-bold text-primary-foreground">
+                                                        Description
+                                                    </h3>
 
-                                <div className="flex flex-row gap-4">
-                                    {finding.description && (
-                                        <div className="rounded-lg bg-primary p-4">
-                                            <h3 className="mb-1 text-sm font-bold text-primary-foreground">
-                                                Description
-                                            </h3>
+                                                    <p className="text-sm leading-relaxed text-primary-foreground">
+                                                        {finding.description}
+                                                    </p>
+                                                </div>
+                                            )}
 
-                                            <p className="text-sm leading-relaxed text-primary-foreground">
-                                                {finding.description}
-                                            </p>
+                                            {finding.pragmatic_explanation && (
+                                                <div className="rounded-lg bg-muted p-4">
+                                                    <h3 className="mb-1 text-sm font-bold text-foreground">
+                                                        Explanation
+                                                    </h3>
+
+                                                    <p className="text-sm leading-relaxed text-muted-foreground">
+                                                        {
+                                                            finding.pragmatic_explanation
+                                                        }
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
 
-                                    {finding.pragmatic_explanation && (
-                                        <div className="rounded-lg bg-muted p-4">
-                                            <h3 className="mb-1 text-sm font-bold text-foreground">
-                                                Explanation
-                                            </h3>
-
-                                            <p className="text-sm leading-relaxed text-muted-foreground">
-                                                {finding.pragmatic_explanation}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/*finding.pivot?.description && (
+                                        {/*finding.pivot?.description && (
                                     <div className="mt-4 rounded-lg border border-border bg-background p-4">
                                         <h3 className="mb-1 text-sm font-bold text-foreground">
                                             Evaluation pattern explanation
@@ -437,90 +470,79 @@ const InterfaceAudit = ({ studyCase, task, humanFactors, evaluationPattern, mess
                                     </div>
                                 )*/}
 
-                                {finding.attack_scenario && (
-                                    <div className="mt-4 rounded-lg border border-border bg-background p-4">
-                                        <h3 className="mb-1 text-sm font-bold text-foreground">
-                                            Attack Scenario
-                                        </h3>
+                                        {finding.attack_scenario && (
+                                            <div className="mt-4 rounded-lg border border-border bg-background p-4">
+                                                <h3 className="mb-1 text-sm font-bold text-foreground">
+                                                    Attack Scenario
+                                                </h3>
 
-                                        <p className="text-sm leading-relaxed text-muted-foreground">
-                                            {finding.attack_scenario}
-                                        </p>
-                                    </div>
-                                )}
+                                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                                    {finding.attack_scenario}
+                                                </p>
+                                            </div>
+                                        )}
 
-                                {finding.impact && (
-                                    <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/70 p-4 dark:bg-destructive">
-                                        <h3 className="mb-1 text-sm font-bold dark:text-foreground">
-                                            Impact
-                                        </h3>
+                                        {finding.impact && (
+                                            <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/70 p-4 dark:bg-destructive">
+                                                <h3 className="mb-1 text-sm font-bold dark:text-foreground">
+                                                    Impact
+                                                </h3>
 
-                                        <p className="text-sm leading-relaxed text-shadow-accent dark:text-muted-foreground">
-                                            {finding.impact}
-                                        </p>
-                                    </div>
-                                )}
+                                                <p className="text-sm leading-relaxed text-shadow-accent dark:text-muted-foreground">
+                                                    {finding.impact}
+                                                </p>
+                                            </div>
+                                        )}
 
-                                {finding.executive_question && (
-                                    <div className="mt-4 rounded-lg bg-muted p-4">
-                                        <h3 className="mb-1 text-sm font-bold text-foreground">
-                                            Executive Question
-                                        </h3>
+                                        {finding.executive_question && (
+                                            <div className="mt-4 rounded-lg bg-muted p-4">
+                                                <h3 className="mb-1 text-sm font-bold text-foreground">
+                                                    Executive Question
+                                                </h3>
 
-                                        <p className="text-sm leading-relaxed text-muted-foreground">
-                                            {finding.executive_question}
-                                        </p>
-                                    </div>
-                                )}
+                                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                                    {finding.executive_question}
+                                                </p>
+                                            </div>
+                                        )}
 
-                                {finding.mitigations?.length > 0 && (
-                                    <div className="mt-4 rounded-lg border border-chart-2/20 bg-chart-2 p-4 dark:border-chart-2/20 dark:bg-chart-2">
-                                        <h3 className="mb-3 text-sm font-bold text-foreground">
-                                            Mitigations
-                                        </h3>
+                                        {finding.mitigations?.length > 0 && (
+                                            <div className="mt-4 rounded-lg border border-chart-2/20 bg-chart-2 p-4 dark:border-chart-2/20 dark:bg-chart-2">
+                                                <h3 className="mb-3 text-sm font-bold text-foreground">
+                                                    Mitigations
+                                                </h3>
 
-                                        <div className="space-y-3">
-                                            {finding.mitigations.map(
-                                                (mitigation) => (
-                                                    <div
-                                                        key={mitigation.id}
-                                                        className="rounded-lg border border-border bg-card/70 p-4"
-                                                    >
-                                                        <h4 className="text-sm font-bold text-foreground">
-                                                            {mitigation.title}
-                                                        </h4>
-
-                                                        {mitigation.description && (
-                                                            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                                                                {
-                                                                    mitigation.description
+                                                <div className="space-y-3">
+                                                    {finding.mitigations.map(
+                                                        (mitigation) => (
+                                                            <div
+                                                                key={
+                                                                    mitigation.id
                                                                 }
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                ),
-                                            )}
-                                        </div>
+                                                                className="rounded-lg border border-border bg-card/70 p-4"
+                                                            >
+                                                                <h4 className="text-sm font-bold text-foreground">
+                                                                    {
+                                                                        mitigation.title
+                                                                    }
+                                                                </h4>
+
+                                                                {mitigation.description && (
+                                                                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                                                                        {
+                                                                            mitigation.description
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        ))}
-                        {/*{isAuditRunning ? (
-                            <ProgressStatusCard
-                                status={auditProgress.status}
-                                current={auditProgress.current}
-                                total={auditProgress.total}
-                                message={
-                                    auditProgress.message ??
-                                    'Analysing evaluation patterns...'
-                                }
-                                error={auditProgress.error}
-                                size="lg"
-                                loadingVariant={
-                                    auditProgress.total > 0 ? 'both' : 'dots'
-                                }
-                            />
-                        ) : findings.length === 0 ? (
+                            ))
+                        ) : !isAuditActive ? (
                             <div className="rounded-3xl border border-dashed border-border bg-card-high p-8 text-center">
                                 <h3 className="font-display text-lg font-black tracking-tight text-secondary uppercase">
                                     No findings yet
@@ -534,7 +556,7 @@ const InterfaceAudit = ({ studyCase, task, humanFactors, evaluationPattern, mess
                                     for this task.
                                 </p>
                             </div>
-                        ) : null}*/}
+                        ) : null}
                     </div>
                 </main>
 

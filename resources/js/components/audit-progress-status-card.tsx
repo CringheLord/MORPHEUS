@@ -110,6 +110,16 @@ function getProgressPercentage(current = 0, total = 0): number {
     return Math.min(100, Math.max(0, Math.round((current / total) * 100)));
 }
 
+function LoadingDots() {
+    return (
+        <div className="flex items-center gap-1.5">
+            <span className="size-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+            <span className="size-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+            <span className="size-2 animate-bounce rounded-full bg-primary" />
+        </div>
+    );
+}
+
 function CircularProgress({
     percentage,
     size,
@@ -161,27 +171,26 @@ function CircularProgress({
 }
 
 const AuditProgressStatusCard = ({
-        status,
-        current = 0,
-        total = 0,
-        title,
-        message,
-        error,
-        icon,
-        size = 'md',
-        loadingVariant = 'line',
-        showPercentage = true,
-        showCounter = true,
-        className,
-    }: ProgressStatusCardProps) => {
+    status,
+    current = 0,
+    total = 0,
+    title,
+    message,
+    error,
+    icon,
+    size = 'md',
+    loadingVariant = 'line',
+    showPercentage = true,
+    showCounter = true,
+    className,
+}: ProgressStatusCardProps) => {
     const config = statusConfig[status];
     const sizing = sizeClasses[size];
     const percentage = getProgressPercentage(current, total);
 
-    const showLine = loadingVariant === 'line' ;
-
-    const showCircle =
-        loadingVariant === 'circle';
+    const showLine = loadingVariant === 'line';
+    const showCircle = loadingVariant === 'circle';
+    const showDots = loadingVariant === 'dots';
 
     return (
         <div
@@ -233,6 +242,12 @@ const AuditProgressStatusCard = ({
                         size={sizing.circle}
                         stroke={sizing.stroke}
                     />
+                )}
+
+                {showDots && (
+                    <div className="flex shrink-0 items-center justify-center rounded-xl bg-muted px-3 py-2">
+                        <LoadingDots />
+                    </div>
                 )}
             </div>
 

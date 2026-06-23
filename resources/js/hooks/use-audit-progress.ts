@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
-import { route } from 'ziggy-js';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { route } from 'ziggy-js';
 
 export type AuditProgress = {
     status:
@@ -24,30 +24,45 @@ type UseAuditProgressParams = {
     intervalMs?: number;
 };
 
-export function useAuditProgress({ taskId, initialProgress, intervalMs = 2000, }: UseAuditProgressParams) {
+function isAuditActive(status: AuditProgress['status']) {
+    return status === 'queued' || status === 'running';
+}
 
-    const [auditProgress, setAuditProgress] = useState<AuditProgress>(initialProgress);
+function isAuditFinished(status: AuditProgress['status']) {
+    return (
+        status === 'completed' ||
+        status === 'completed_with_errors' ||
+        status === 'failed'
+    );
+}
+
+export function useAuditProgress({
+    taskId,
+    initialProgress,
+    intervalMs = 2000,
+}: UseAuditProgressParams) {
+    const [auditProgress, setAuditProgress] =
+        useState<AuditProgress>(initialProgress);
 
     useEffect(() => {
-        const isAuditActive = auditProgress.status === 'running';
-
-        if (!isAuditActive) {
+        if (!isAuditActive(auditProgress.status)) {
             return;
         }
 
         const interval = window.setInterval(async () => {
             try {
                 const { data } = await axios.get<AuditProgress>(
-                    route('task.audit-progress', taskId),
+                    route('tasks.audit-progress', taskId),
                 );
 
                 setAuditProgress(data);
 
-                if (data.status === 'completed' || data.status === 'failed' || data.status === 'completed_with_errors') {
+                if (isAuditFinished(data.status)) {
                     window.clearInterval(interval);
 
                     router.reload({
-                        only: ['task', 'findings']
+                        only: ['task', 'findings'],
+                        preserveScroll: true,
                     });
                 }
             } catch (error) {
@@ -56,7 +71,6 @@ export function useAuditProgress({ taskId, initialProgress, intervalMs = 2000, }
         }, intervalMs);
 
         return () => window.clearInterval(interval);
-
     }, [auditProgress.status, taskId, intervalMs]);
 
     return auditProgress;

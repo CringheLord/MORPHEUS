@@ -139,10 +139,10 @@ const TaskIndex = ({ tasks, onEditTask, onDeleteTask }: Props) => {
                                             <PersonStanding className="text-card-foreground" />
                                             <span className="flex flex-row text-sm text-card-foreground">
                                                 {task.user_type ===
-                                                'average_user'
+                                                'standard_user'
                                                     ? 'Standard User'
                                                     : task.user_type ===
-                                                        'novice'
+                                                        'novice_user'
                                                       ? 'Novice'
                                                       : 'Critical Operator'}
                                                 <ChevronRight className="overflow-hidden text-ellipsis whitespace-nowrap text-card-foreground-secondary" />

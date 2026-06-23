@@ -20,6 +20,7 @@ export type EvaluationPattern = {
     remediation: string;
     org_question: string;
     number_of_violations: number;
+    findings_count: number;
 
     ui_tags: uiTag[];
 
@@ -80,7 +81,7 @@ export type Task = {
     id: number;
     study_case_id: number; //Novice (Low technological confidence)
     task_name: string; //Average User (Standard daily use)
-    user_type: 'novice' | 'average_user' | 'expert' | 'critical_operator'; //--> //Expert (Industry specialist)
+    user_type: 'novice_user' | 'standard_user' | 'critical_operator'; //--> //Expert (Industry specialist)
     user_role: string;
     user_intent: string;
     stress_level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; //Critical Operator (Under constant stress)
@@ -197,6 +198,28 @@ export type Message = {
     role: string;
     content: string;
 }
+
+export type StudyCaseSummary = {
+    id: number;
+    title: string;
+    status?: string | null;
+    updated_at?: string | null;
+    tasks_count?: number;
+    questionnaires_count?: number;
+}
+
+export type DashboardStats = {
+    study_cases_count: number;
+    tasks_count: number;
+    findings_count: number;
+}
+
+export type DashboardProps = {
+    lastStudyCase: StudyCaseSummary | null;
+    recentStudyCases: StudyCaseSummary[];
+    stats: DashboardStats;
+}
+
 
 
 

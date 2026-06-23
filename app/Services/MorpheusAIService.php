@@ -317,8 +317,8 @@ class MorpheusAIService
             $initialPrompt .= "[Impact]: {$selectedFinding->impact}\n";
             $initialPrompt .= "[Severity]: {$selectedFinding->severity}\n";
             $initialPrompt .= "The image/artifact relative to this finding will be provided as an attachment.\n\n";
-            $artifact = $selectedFinding->load('artifact');
-            $attachment = Image::fromStorage($artifact->file_path, disk: 'public');
+           /* $artifact = $selectedFinding->load('artifact');
+            $attachment = Image::fromStorage($artifact->file_path, disk: 'public');*/
             if ($selectedEvaluationPattern !== null) {
                 $initialPrompt .= "Relative Evaluation Pattern:\n";
                 $initialPrompt .= "[ID]: {$selectedFinding->h_id}\n";
@@ -340,9 +340,9 @@ class MorpheusAIService
             ->continue($conversation->id, as: $user)
             ->prompt(
                 $initialPrompt,
-                attachments: [$attachment],
+                /*attachments: [$attachment],*//*
                 provider: $this->providerMap($provider),
-                model: $model,
+                model: $model,*/
             );
 
 

@@ -27,10 +27,19 @@ const AgentChat = ({ task, messages, className, selectedEP, selectedFinding }: P
         ? messages
         : Object.values(messages ?? {});
 
+    const visibleMessages = normalizedMessages.filter((message) => {
+        const content =
+            typeof message.content === 'string'
+                ? message.content
+                : String(message.content ?? '');
+
+        return !content.trimStart().startsWith('---System Context---');
+    });
+
     const [prompt, setPrompt] = useState('');
     const [processing, setProcessing] = useState(false);
     const [chatMessages, setChatMessages] =
-        useState<Message[]>(normalizedMessages);
+        useState<Message[]>(visibleMessages);
     const [errorMessage, setErrorMessage] = useState<string>('');
 
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -45,6 +54,8 @@ const AgentChat = ({ task, messages, className, selectedEP, selectedFinding }: P
             });
         }
     }, [isOpen]);
+
+
 
     async function sendMessage() {
         const trimmedPrompt = prompt.trim();

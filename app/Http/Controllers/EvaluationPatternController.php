@@ -36,7 +36,7 @@ class EvaluationPatternController extends Controller
         }
         $heuristics_all = EvaluationPattern::all();
 
-        $evaluation_patterns = $query->get();
+        $evaluation_patterns = $query->withCount('findings')->get();
 
         $heuristics_all = EvaluationPattern::with(['humanFactor', 'uiTags'])->get();
 
@@ -44,8 +44,13 @@ class EvaluationPatternController extends Controller
 
         $tags = UiTag::orderBy('name')->get(['id', 'name', 'slug']);
 
+        $tasksCount = DB::table('tasks')->count();
+
+
+
         return Inertia::render('EvaluationPattern/EPIndex', [
             'evaluation_patterns' => $evaluation_patterns,
+            'tasksCount' => $tasksCount,
             'heuristics_all' => $heuristics_all,
             'human_factors' => $humanFactors,
             'tags' => $tags,
