@@ -72,6 +72,17 @@ If you also want demo/sample data, run all seeders:
 php artisan migrate --seed
 ```
 
+### API KEYS
+Insert you API Keys in the .env like in the example
+```bash
+
+OPENAI_API_KEY="insert key"
+GEMINI_API_KEY="insert key"
+.
+.
+.
+```
+
 ### Development
 
 Open three terminals.
